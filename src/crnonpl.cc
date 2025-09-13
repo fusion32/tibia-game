@@ -46,7 +46,8 @@ static void DeleteBehaviourNode(TBehaviourNode *Node){
 
 bool TBehaviourCondition::set(int Type, void *Data){
 	if(Type != BEHAVIOUR_CONDITION_SHORTCIRCUIT && Data == NULL){
-		error("TBehaviourCondition::set: Data ist NULL.\n");
+		error(Translate("TBehaviourCondition::set: Data ist NULL.\n",
+						"TBehaviourCondition::set: Data is NULL.\n"));
 		this->Type = BEHAVIOUR_CONDITION_NONE;
 		return false;
 	}
@@ -113,7 +114,8 @@ bool TBehaviourCondition::set(int Type, void *Data){
 		}
 
 		default:{
-			error("TBehaviourCondition::set: Ungültiger Bedingungstyp %d\n", Type);
+			error(Translate("TBehaviourCondition::set: Ungültiger Bedingungstyp %d\n",
+							"TBehaviourCondition::set: Invalid condition type %d\n"), Type);
 			return false;
 		}
 	}
@@ -175,7 +177,8 @@ bool TBehaviourAction::set(int Type, void *Data, void *Data2, void *Data3, void 
 		}
 
 		default:{
-			error("TAction::set: Ungültiger Aktionstyp %d\n", Type);
+			error(Translate("TAction::set: Ungültiger Aktionstyp %d\n",
+							"TAction::set: Invalid action type %d\n"), Type);
 			return false;
 		}
 	}
@@ -650,24 +653,28 @@ TBehaviourNode *TBehaviourDatabase::readTerm(TReadScriptFile *Script){
 
 int TBehaviourDatabase::evaluate(TNPC *Npc, TBehaviourNode *Node, int *Parameters){
 	if(Npc == NULL){
-		error("TBehaviourDatabase::evaluate: NPC existiert nicht.\n");
+		error(Translate("TBehaviourDatabase::evaluate: NPC existiert nicht.\n",
+						"TBehaviourDatabase::evaluate: NPC does not exist.\n"));
 		return 0;
 	}
 
 	if(Node == NULL){
-		error("TBehaviourDatabase::evaluate: Knoten existiert nicht.\n");
+		error(Translate("TBehaviourDatabase::evaluate: Knoten existiert nicht.\n",
+						"TBehaviourDatabase::evaluate: Node does not exist.\n"));
 		return 0;
 	}
 
 	if(Parameters == NULL){
-		error("TBehaviourDatabase::evaluate: Zahlen existieren nicht.\n");
+		error(Translate("TBehaviourDatabase::evaluate: Zahlen existieren nicht.\n",
+						"TBehaviourDatabase::evaluate: Numbers do not exist.\n"));
 		return 0;
 	}
 
 	uint32 InterlocutorID = Npc->Interlocutor;
 	TPlayer *Interlocutor = GetPlayer(InterlocutorID);
 	if(Interlocutor == NULL){
-		error("TBehaviourDatabase::evaluate: Gesprächspartner existiert nicht.\n");
+		error(Translate("TBehaviourDatabase::evaluate: Gesprächspartner existiert nicht.\n",
+						"TBehaviourDatabase::evaluate: conversation partner does not exist.\n"));
 		return 0;
 	}
 
@@ -738,9 +745,11 @@ int TBehaviourDatabase::evaluate(TNPC *Npc, TBehaviourNode *Node, int *Parameter
 
 		case BEHAVIOUR_NODE_PARAMETER:{
 			if(Node->Data != 1 && Node->Data != 2){
-				error("TBehaviourDatabase::evaluate: Ungültiger Zahl-Parameter %d.\n", Node->Data);
+				error(Translate("TBehaviourDatabase::evaluate: Ungültiger Zahl-Parameter %d.\n",
+								"TBehaviourDatabase::evaluate: Invalid number parameter %d.\n"), Node->Data);
 			}else if(Parameters[Node->Data - 1] < 0){
-				error("TBehaviourDatabase::evaluate: Zahl-Parameter %d nicht belegt.\n", Node->Data);
+				error(Translate("TBehaviourDatabase::evaluate: Zahl-Parameter %d nicht belegt.\n",
+								"TBehaviourDatabase::evaluate: Number parameter %d not assigned.\n"), Node->Data);
 			}else{
 				Result = Parameters[Node->Data - 1];
 			}
@@ -777,7 +786,8 @@ int TBehaviourDatabase::evaluate(TNPC *Npc, TBehaviourNode *Node, int *Parameter
 					|| SkillNr == SKILL_BURNING){
 				Result = Interlocutor->Skills[SkillNr]->TimerValue();
 			}else{
-				error("TBehaviourDatabase::evaluate: Ungültiger Skill %d.\n", SkillNr);
+				error(Translate("TBehaviourDatabase::evaluate: Ungültiger Skill %d.\n",
+								"TBehaviourDatabase::evaluate: Invalid skill %d.\n"), SkillNr);
 			}
 			break;
 		}
@@ -829,7 +839,8 @@ int TBehaviourDatabase::evaluate(TNPC *Npc, TBehaviourNode *Node, int *Parameter
 		}
 
 		default:{
-			error("TBehaviourDatabase::evaluate: Ungültiger Knotentyp %d.\n", Node->Type);
+			error(Translate("TBehaviourDatabase::evaluate: Ungültiger Knotentyp %d.\n",
+							"TBehaviourDatabase::evaluate: Invalid NodeType %d.\n"), Node->Type);
 			break;
 		}
 	}
@@ -840,7 +851,8 @@ int TBehaviourDatabase::evaluate(TNPC *Npc, TBehaviourNode *Node, int *Parameter
 // but I figured it would be better to pull them out for readability.
 static bool CheckBehaviourProperty(int Property, SITUATION Situation, TPlayer *Interlocutor){
 	if(Interlocutor == NULL){
-		error("CheckBehaviourProperty: Interlocutor ist NULL.");
+		error(Translate("CheckBehaviourProperty: Interlocutor ist NULL.\n",
+						"CheckBehaviourProperty: Interlocutor is NULL.\n"));
 		return false;
 	}
 
@@ -972,20 +984,22 @@ static bool FormatNpcResponse(char *Buffer, int BufferSize,
 
 void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation){
 	if(Npc == NULL){
-		error("TBehaviourDatabase::react: NPC existiert nicht.\n");
+		error(Translate("TBehaviourDatabase::react: NPC existiert nicht.\n",
+						"TBehaviourDatabase::react: NPC does not exist.\n"));
 		return;
 	}
 
 	if(Text == NULL){
-		error("TBehaviourDatabase::react: Übergebener Text existiert nicht.\n");
+		error(Translate("TBehaviourDatabase::react: Übergebener Text existiert nicht.\n",
+						"TBehaviourDatabase::react: Passed text does not exist.\n"));
 		return;
 	}
 
 	uint32 InterlocutorID = Npc->Interlocutor;
 	TPlayer *Interlocutor = GetPlayer(InterlocutorID);
 	if(Interlocutor == NULL){
-		error("TBehaviourDatabase::react: Gesprächspartner existiert nicht"
-				" (Text=%s, Situation=%d).\n", Text, Situation);
+		error(Translate("TBehaviourDatabase::react: Gesprächspartner existiert nicht (Text=%s, Situation=%d).\n",
+						"TBehaviourDatabase::react: Conversation partner does not exist (Text=%s, Situation=%d).\n"), Text, Situation);
 		return;
 	}
 
@@ -1095,7 +1109,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 					BehaviourNr -= 1;
 					Repeat = true;
 				}else{
-					error("TBehaviourDatabase::react (9): Kein vorheriges Muster.\n");
+					error(Translate("TBehaviourDatabase::react (9): Kein vorheriges Muster.\n",
+									"TBehaviourDatabase::react (9): No previous pattern.\n"));
 				}
 				break;
 			}
@@ -1111,7 +1126,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 						StartToDo = true;
 					}else{
 						Response[20] = 0;
-						error("TBehaviourDatabase::react: Text von NPC %s wird zu lang (%s...).\n",
+						error(Translate("TBehaviourDatabase::react: Text von NPC %s wird zu lang (%s...).\n",
+										"TBehaviourDatabase::react: Text of NPC %s is too long (%s...).\n"),
 								Npc->Name, Response);
 					}
 					break;
@@ -1127,7 +1143,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 						case 4: Npc->TypeID = Value; break;
 						case 6: Npc->Data = Value; break;
 						default:{
-							error("TBehaviourDatabase::react: Ungültige Variable.\n");
+							error(Translate("TBehaviourDatabase::react: Ungültige Variable.\n",
+											"TBehaviourDatabase::react: Invalid Variable.\n"));
 							break;
 						}
 					}
@@ -1140,10 +1157,12 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 					if(SkillNr == SKILL_HITPOINTS){
 						Interlocutor->Skills[SKILL_HITPOINTS]->Set(Value);
 						if(Interlocutor->Skills[SKILL_HITPOINTS]->Get() <= 0){
-							error("TBehaviourDatabase::react: NPC %s tötet Spieler.\n", Npc->Name);
+							error(Translate("TBehaviourDatabase::react: NPC %s tötet Spieler.\n",
+											"TBehaviourDatabase::react: NPC %s kills player.\n"), Npc->Name);
 						}
 					}else{
-						error("TBehaviourDatabase::react: Ungültiger Skill.\n");
+						error(Translate("TBehaviourDatabase::react: Ungültiger Skill.\n",
+										"TBehaviourDatabase::react: Invalid skill.\n"));
 					}
 					break;
 				}
@@ -1155,7 +1174,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 					switch(FunctionNr){
 						case 3: Interlocutor->SetQuestValue(Param1, Param2); break;
 						default:{
-							error("TBehaviourDatabase::react (4): Ungültige Funktionsnummer.\n");
+							error(Translate("TBehaviourDatabase::react (4): Ungültige Funktionsnummer.\n",
+											"TBehaviourDatabase::react (4): Invalid function number.\n"));
 							break;
 						}
 					}
@@ -1174,7 +1194,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 						case 6: Npc->GiveTo(Param, Npc->Amount); break;
 						case 7: Npc->GetFrom(Param, Npc->Amount); break;
 						default:{
-							error("TBehaviourDatabase::react (5): Ungültige Funktionsnummer.\n");
+							error(Translate("TBehaviourDatabase::react (5): Ungültige Funktionsnummer.\n",
+											"TBehaviourDatabase::react (5): Invalid function number.\n"));
 							break;
 						}
 					}
@@ -1190,12 +1211,14 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 							if(Situation == BUSY){
 								Npc->Enqueue(InterlocutorID, Text);
 							}else{
-								error("TBehaviourDatabase::react (6): falsche Situation für Aktion \"Queue\".\n");
+								error(Translate("TBehaviourDatabase::react (6): falsche Situation für Aktion \"Queue\".\n",
+												"TBehaviourDatabase::react (6): wrong situation for action \"Queue\".\n"));
 							}
 							break;
 						}
 						default:{
-							error("TBehaviourDatabase::react (6): Ungültige Funktionsnummer.\n");
+							error(Translate("TBehaviourDatabase::react (6): Ungültige Funktionsnummer.\n",
+											"TBehaviourDatabase::react (6): Invalid function number.\n"));
 							break;
 						}
 					}
@@ -1209,7 +1232,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 						if(Situation != ADDRESSQUEUE){
 							StartToDo = true;
 						}else{
-							error("TBehaviourDatabase::react: NPC %s reagiert nicht auf Anrede %s.\n",
+							error(Translate("TBehaviourDatabase::react: NPC %s reagiert nicht auf Anrede %s.\n",
+											"TBehaviourDatabase::react: NPC %s does not respond to greeting %s.\n"),
 									Npc->Name, Text);
 						}
 					}else{
@@ -1235,7 +1259,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 							}
 						}
 					}else{
-						error("TBehaviourDatabase::react (8): Ungültiger Skill.\n");
+						error(Translate("TBehaviourDatabase::react (8): Ungültiger Skill.\n",
+										"TBehaviourDatabase::react (8): Invalid skill.\n"));
 					}
 					break;
 				}
@@ -1247,19 +1272,22 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 					int Param3 = this->evaluate(Npc, Action->Expression3, Parameters);
 					switch(FunctionNr){
 						case 1:{
-							print(3, "NPC teleportiert Gesprächspartner nach [%d,%d,%d].\n",
+							print(3, Translate("NPC teleportiert Gesprächspartner nach [%d,%d,%d].\n",
+											   "NPC teleports conversation partner to [%d,%d,%d].\n"),
 									Param1, Param2, Param3);
 							try{
 								Object Dest = GetMapContainer(Param1, Param2, Param3);
 								Move(0, Interlocutor->CrObject, Dest, -1, false, NONE);
 							}catch(RESULT r){
-								error("TBehaviourDatabase::react (10): Exception %d.\n", r);
+								error(Translate("TBehaviourDatabase::react (10): Exception %d.\n",
+												"TBehaviourDatabase::react (10): Exception %d.\n"), r);
 							}
 							break;
 						}
 
 						case 2:{
-							print(3, "NPC setzt Startkoordinate für Gesprächspartner auf [%d,%d,%d].\n",
+							print(3, Translate("NPC setzt Startkoordinate für Gesprächspartner auf [%d,%d,%d].\n",
+											   "NPC sets start coordinate for conversation partner to [%d,%d,%d].\n"),
 									Param1, Param2, Param3);
 							Interlocutor->startx = Param1;
 							Interlocutor->starty = Param2;
@@ -1269,7 +1297,8 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 						}
 
 						default:{
-							error("TBehaviourDatabase::react (10): Ungültige Unternummer.\n");
+							error(Translate("TBehaviourDatabase::react (10): Ungültige Unternummer.\n",
+											"TBehaviourDatabase::react (10): Invalid subnumber.\n"));
 							break;
 						}
 					}
@@ -1292,19 +1321,23 @@ void TBehaviourDatabase::react(TNPC *Npc, const char *Text, SITUATION Situation)
 // =============================================================================
 void StartMonsterhomeTimer(int Nr){
 	if(Nr < 1 || Nr > Monsterhomes){
-		error("StartMonsterhomeTimer: Ungültige Monsterhome-Nummer %d.\n", Nr);
+		error(Translate("StartMonsterhomeTimer: Ungültige Monsterhome-Nummer %d.\n",
+						"StartMonsterhomeTimer: Invalid Monsterhome number %d.\n"), Nr);
 		return;
 	}
 
 	TMonsterhome *MH = Monsterhome.at(Nr);
 	if(MH->Timer > 0){
-		error("StartMonsterhomeTimer: Zähler läuft schon.\n");
+		error(Translate("StartMonsterhomeTimer: Zähler läuft schon.\n",
+						"StartMonsterhomeTimer: Timer is already running.\n"));
 		return;
 	}
 
 	if(MH->ActMonsters >= MH->MaxMonsters){
-		error("StartMonsterhomeTimer: Maximale Monsterzahl schon erreicht.\n");
-		error("# Monsterhome mit Rasse %d an [%d,%d,%d]\n", MH->Race, MH->x, MH->y, MH->z);
+		error(Translate("StartMonsterhomeTimer: Maximale Monsterzahl schon erreicht.\n",
+						"StartMonsterhomeTimer: Maximum number of monsters already reached.\n"));
+		error(Translate("# Monsterhome mit Rasse %d an [%d,%d,%d]\n",
+						"# Monsterhome with race %d at [%d,%d,%d]\n"), MH->Race, MH->x, MH->y, MH->z);
 		return;
 	}
 
@@ -1320,7 +1353,8 @@ void StartMonsterhomeTimer(int Nr){
 }
 
 void LoadMonsterhomes(void){
-	print(1, "Initialisiere Monsterhomes ...\n");
+	print(1, Translate("Initialisiere Monsterhomes ...\n",
+					   "Initialize monsterhomes ...\n"));
 
 	char FileName[4096];
 	snprintf(FileName, sizeof(FileName), "%s/monster.db", DATAPATH);
@@ -1348,11 +1382,13 @@ void LoadMonsterhomes(void){
 		MH->Timer = 0;
 
 		if(!IsOnMap(MH->x, MH->y, MH->z)){
-			print(1, "WARNUNG: Monsterhome [%d,%d,%d] befindet sich außerhalb der Karte.\n", MH->x, MH->y, MH->z);
+			print(1, Translate("WARNUNG: Monsterhome [%d,%d,%d] befindet sich außerhalb der Karte.\n",
+							   "WARNING: Monsterhome [%d,%d,%d] is located off-map.\n"), MH->x, MH->y, MH->z);
 		}
 	}
 
-	print(1, "%d Monsterhomes geladen.\n", Monsterhomes);
+	print(1, Translate("%d Monsterhomes geladen.\n",
+					   "%d Monsterhomes loaded.\n"), Monsterhomes);
 	Script.close();
 
 	for(int i = 0; i < Monsterhomes; i += 1){
@@ -1384,7 +1420,8 @@ void LoadMonsterhomes(void){
 		}
 
 		if(MH->Timer > 0){
-			error("LoadMonsterhomes: Timer läuft schon (Rasse %d an [%d,%d,%d]).\n",
+			error(Translate("LoadMonsterhomes: Timer läuft schon (Rasse %d an [%d,%d,%d]).\n",
+							"LoadMonsterhomes: Timer is already running (race %d on [%d,%d,%d]).\n"),
 					MH->Race, MH->x, MH->y, MH->z);
 		}else if(MH->ActMonsters < MH->MaxMonsters){
 			StartMonsterhomeTimer(i);
@@ -1420,7 +1457,8 @@ void ProcessMonsterhomes(void){
 
 			TPlayer *Player = GetPlayer(CharacterID);
 			if(Player == NULL){
-				error("ProcessMonsterhomes: Kreatur existiert nicht.\n");
+				error(Translate("ProcessMonsterhomes: Kreatur existiert nicht.\n",
+								"ProcessMonsterhomes: Creature does not exist.\n"));
 				break;
 			}
 
@@ -1458,7 +1496,8 @@ void ProcessMonsterhomes(void){
 
 				// TODO(fusion): Not sure why this check is here.
 				if(MH->Timer > 0){
-					error("ProcessMonsterhomes: Timer läuft schon (Rasse %d an [%d,%d,%d]).\n",
+					error(Translate("ProcessMonsterhomes: Timer läuft schon (Rasse %d an [%d,%d,%d]).\n",
+									"ProcessMonsterhomes: Timer is already running (race %d on [%d,%d,%d]).\n"),
 							MH->Race, SpawnX, SpawnY, SpawnZ);
 				}
 			}
@@ -1472,19 +1511,22 @@ void ProcessMonsterhomes(void){
 
 void NotifyMonsterhomeOfDeath(int Nr){
 	if(Nr < 1 || Nr > Monsterhomes){
-		error("NotifyMonsterhomeOfDeath: Ungültige Monsterhome-Nummer %d.\n", Nr);
+		error(Translate("NotifyMonsterhomeOfDeath: Ungültige Monsterhome-Nummer %d.\n",
+						"NotifyMonsterhomeOfDeath: Invalid Monsterhome number %d.\n"), Nr);
 		return;
 	}
 
 	TMonsterhome *MH = Monsterhome.at(Nr);
 	if(MH->ActMonsters < 1){
-		error("NotifyMonsterhomeOfDeath: Monsterhome hat keine lebenden Kreaturen.\n");
+		error(Translate("NotifyMonsterhomeOfDeath: Monsterhome hat keine lebenden Kreaturen.\n",
+						"NotifyMonsterhomeOfDeath: Monsterhome has no living creatures.\n"));
 		return;
 	}
 
 	MH->ActMonsters -= 1;
 	if(MH->ActMonsters >= MH->MaxMonsters){
-		error("NotifyMonsterhomeOfDeath: Monsterhome %d hatte zu viele Monster (%d statt %d).\n",
+		error(Translate("NotifyMonsterhomeOfDeath: Monsterhome %d hatte zu viele Monster (%d statt %d).\n",
+						"NotifyMonsterhomeOfDeath: Monsterhome %d had too many monsters (%d instead of %d).\n"),
 				Nr, (MH->ActMonsters + 1), MH->MaxMonsters);
 		return;
 	}
@@ -1500,7 +1542,8 @@ bool MonsterhomeInRange(int Nr, int x, int y, int z){
 	}
 
 	if(Nr < 1 || Nr > Monsterhomes){
-		error("MonsterhomeInRange: Ungültige Monsterhome-Nummer %d.\n", Nr);
+		error(Translate("MonsterhomeInRange: Ungültige Monsterhome-Nummer %d.\n",
+						"MonsterhomeInRange: Invalid Monsterhome number %d.\n"), Nr);
 		return false;
 	}
 
@@ -1539,7 +1582,8 @@ void TNonplayer::DelInList(void){
 	}
 
 	if(!Removed){
-		error("TNonplayer::DelInList: Kreatur nicht gefunden.\n");
+		error(Translate("TNonplayer::DelInList: Kreatur nicht gefunden.\n",
+						"TNonplayer::DelInList: Creature not found.\n"));
 	}
 }
 
@@ -1633,14 +1677,16 @@ TNPC::TNPC(const char *FileName) :
 	}
 
 	if(!IsOnMap(this->posx, this->posy, this->posz)){
-		print(1, "WARNUNG: NPC '%s' steht außerhalb der Karte.\n", this->Name);
+		print(1, Translate("WARNUNG: NPC '%s' steht außerhalb der Karte.\n",
+						   "WARNING: NPC '%s' is outside the map.\n"), this->Name);
 		return;
 	}
 
 	this->SetID(0);
 	this->SetInList();
 	if(!this->SetOnMap()){
-		print(1, "WARNUNG: Kann NPC \'%s\' nicht setzen.\n", this->Name);
+		print(1, Translate("WARNUNG: Kann NPC \'%s\' nicht setzen.\n",
+						   "WARNING: Cannot set NPC \'%s\'.\n"), this->Name);
 		return;
 	}
 
@@ -1667,7 +1713,8 @@ void TNPC::TalkStimulus(uint32 SpeakerID, const char *Text){
 	}
 
 	if(Text == NULL){
-		error("TNPC::TalkStimulus: Übergebener Text existiert nicht.\n");
+		error(Translate("TNPC::TalkStimulus: Übergebener Text existiert nicht.\n",
+						"TNPC::TalkStimulus: Passed text does not exist.\n"));
 		return;
 	}
 
@@ -1729,7 +1776,8 @@ void TNPC::IdleStimulus(void){
 				this->Interlocutor = InterlocutorID;
 				this->Behaviour->react(this, GetDynamicString(Text), ADDRESSQUEUE);
 			}else{
-				error("TNPC::IdleStimulus: Gesprächspartner existiert nicht.\n");
+				error(Translate("TNPC::IdleStimulus: Gesprächspartner existiert nicht.\n",
+								"TNPC::IdleStimulus: Conversation partner does not exist.\n"));
 			}
 
 			DeleteDynamicString(Text);
@@ -1813,7 +1861,8 @@ void TNPC::CreatureMoveStimulus(uint32 CreatureID, int Type){
 		if(CreatureID == this->Interlocutor || CreatureID == this->ID){
 			TCreature *Interlocutor = GetCreature(this->Interlocutor);
 			if(Interlocutor == NULL){
-				error("TNPC::CreatureMoveStimulus: Gesprächspartner existiert nicht.\n");
+				error(Translate("TNPC::CreatureMoveStimulus: Gesprächspartner existiert nicht.\n",
+								"TNPC::CreatureMoveStimulus: Conversation partner does not exist.\n"));
 				this->ChangeState(IDLE, true);
 				return;
 			}
@@ -1847,7 +1896,8 @@ void TNPC::GiveTo(ObjectType Type, int Amount){
 	}
 
 	if(Type.isMapContainer() || Type.getName(1) == NULL){
-		error("TNPC::GiveTo: %s will Objekte vom Typ %d erschaffen.\n",
+		error(Translate("TNPC::GiveTo: %s will Objekte vom Typ %d erschaffen.\n",
+						"TNPC::GiveTo: %s wants to create objects of type %d.\n"),
 				this->Name, Type.TypeID);
 		return;
 	}
@@ -1910,12 +1960,14 @@ void TNPC::GetMoney(int Amount){
 
 void TNPC::Enqueue(uint32 InterlocutorID, const char *Text){
 	if(InterlocutorID == 0){
-		error("TNPC::Enqueue: Gesprächspartner ist Null.\n");
+		error(Translate("TNPC::Enqueue: Gesprächspartner ist Null.\n",
+						"TNPC::Enqueue: Interlocutor is Null.\n"));
 		return;
 	}
 
 	if(Text == NULL){
-		error("TNPC::Enqueue: Text ist NULL.\n");
+		error(Translate("TNPC::Enqueue: Text ist NULL.\n",
+						"TNPC::Enqueue: Text is NULL.\n"));
 		return;
 	}
 
@@ -1937,7 +1989,8 @@ void TNPC::Enqueue(uint32 InterlocutorID, const char *Text){
 void TNPC::TurnToInterlocutor(void){
 	TCreature *Interlocutor = GetCreature(this->Interlocutor);
 	if(Interlocutor == NULL){
-		error("TNPC::TurnToInterlocutor: Gesprächspartner existiert nicht.\n");
+		error(Translate("TNPC::TurnToInterlocutor: Gesprächspartner existiert nicht.\n",
+						"TNPC::TurnToInterlocutor: Interlocutor does not exist.\n"));
 		return;
 	}
 
@@ -1953,12 +2006,14 @@ void TNPC::ChangeState(STATE NewState, bool Stimulus){
 
 void ChangeNPCState(TCreature *Npc, int NewState, bool Stimulus){
 	if(Npc == NULL){
-		error("ChangeNPCState: npc ist NULL.\n");
+		error(Translate("ChangeNPCState: npc ist NULL.\n",
+						"ChangeNPCState: npc is NULL.\n"));
 		return;
 	}
 
 	if(Npc->Type != NPC){
-		error("ChangeNPCState: npc ist kein NPC.\n");
+		error(Translate("ChangeNPCState: npc ist kein NPC.\n",
+						"ChangeNPCState: npc is not a NPC.\n"));
 		return;
 	}
 
@@ -1987,7 +2042,8 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 		TCreature *Master = GetCreature(this->Master);
 		// TODO(fusion): Do we actually want to return here?
 		if(Master == NULL){
-			error("TMonster::TMonster: Master existiert nicht.\n");
+			error(Translate("TMonster::TMonster: Master existiert nicht.\n",
+							"TMonster::TMonster: Master does not exist.\n"));
 			return;
 		}
 
@@ -1997,7 +2053,8 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 			break;
 		}
 
-		error("TMonster::TMonster: Kinder dürfen keine eigenen Kinder erschaffen.\n");
+		error(Translate("TMonster::TMonster: Kinder dürfen keine eigenen Kinder erschaffen.\n",
+						"TMonster::TMonster: Children are not allowed to create their own children.\n"));
 		this->Master = ((TMonster*)Master)->Master;
 	}
 
@@ -2014,7 +2071,8 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 	this->SetID(0);
 	this->SetInList();
 	if(!this->SetOnMap()){
-		error("TMonster::TMonster: Kann Monster nicht auf die Karte setzen.\n");
+		error(Translate("TMonster::TMonster: Kann Monster nicht auf die Karte setzen.\n",
+						"TMonster::TMonster: Cannot place monsters on the map.\n"));
 		return;
 	}
 
@@ -2055,15 +2113,15 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 							Item = CreateAtCreature(this->ID, ItemType, Amount);
 						}
 					}catch(RESULT r){
-						error("TMonster::TMonster: Exception %d bei Rasse %d, ggf."
-								" CarryStrength erhöhen.\n", r, Race);
+						error(Translate("TMonster::TMonster: Exception %d bei Rasse %d, ggf. CarryStrength erhöhen.\n",
+										"TMonster::TMonster: Exception %d for race %d, increase CarryStrength if necessary.\n"), r, Race);
 						break;
 					}
 
 					// NOTE(fusion): Prevent items from being dropped onto the map.
 					if(Item.getContainer().getObjectType().isMapContainer()){
-						error("TMonster::TMonster: Objekt fällt auf die Karte."
-								" CarryStrength für Rasse %d erhöhen.\n", Race);
+						error(Translate("TMonster::TMonster: Objekt fällt auf die Karte. CarryStrength für Rasse %d erhöhen.\n",
+										"Monster::Monster: Object falls onto the map. Increase carry strength for race %d.\n"), Race);
 						Delete(Item, -1);
 					}
 				}
@@ -2076,7 +2134,8 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 			}
 		}
 	}catch(RESULT r){
-		error("TMonster::TMonster: Exception %d bei Rasse %d.\n", r, Race);
+		error(Translate("TMonster::TMonster: Exception %d bei Rasse %d.\n",
+						"TMonster::TMonster: Exception %d for race %d.\n"), r, Race);
 	}
 
 	this->Combat.CheckCombatValues();
@@ -2105,7 +2164,8 @@ TMonster::~TMonster(void){
 
 bool TMonster::MovePossible(int x, int y, int z, bool Execute, bool Jump){
 	if(this->posz != z){
-		error("TMonster::MovePossible: Prüfung über Ebenen hinweg ([%d,%d,%d] -> [%d,%d,%d]).\n",
+		error(Translate("TMonster::MovePossible: Prüfung über Ebenen hinweg ([%d,%d,%d] -> [%d,%d,%d]).\n",
+						"TMonster::MovePossible: Testing across levels ([%d,%d,%d] -> [%d,%d,%d]).\n"),
 				this->posx, this->posy, this->posz, x, y, z);
 		return false;
 	}
@@ -2125,7 +2185,8 @@ bool TMonster::MovePossible(int x, int y, int z, bool Execute, bool Jump){
 	}
 
 	if(this->Skills[SKILL_GO_STRENGTH]->Act < 0){
-		error("TMonster::MovePossible: Monster %s an [%d,%d,%d] darf sich nicht bewegen.\n",
+		error(Translate("TMonster::MovePossible: Monster %s an [%d,%d,%d] darf sich nicht bewegen.\n",
+						"TMonster::MovePossible: Monster %s at [%d,%d,%d] may not move.\n"),
 				this->Name, this->posx, this->posy, this->posz);
 		return false;
 	}
@@ -2170,7 +2231,8 @@ bool TMonster::MovePossible(int x, int y, int z, bool Execute, bool Jump){
 
 				TCreature *Creature = GetCreature(Obj);
 				if(Creature == NULL){
-					error("TMonster::MovePossible: Kann Hindernis-Kreatur nicht identifizieren.\n");
+					error(Translate("TMonster::MovePossible: Kann Hindernis-Kreatur nicht identifizieren.\n",
+									"TMonster::MovePossible: Cannot identify obstacle creature.\n"));
 					return false;
 				}
 
@@ -2252,7 +2314,8 @@ bool TMonster::MovePossible(int x, int y, int z, bool Execute, bool Jump){
 		}
 	}
 
-	error("TMonster::MovePossible: Endlosschleife vermutet für %s an [%d,%d,%d].\n",
+	error(Translate("TMonster::MovePossible: Endlosschleife vermutet für %s an [%d,%d,%d].\n",
+					"TMonster::MovePossible: Infinite loop suspected for %s at [%d,%d,%d].\n"),
 			this->Name, x, y, z);
 	return false;
 }
@@ -2291,7 +2354,8 @@ void TMonster::IdleStimulus(void){
 	}
 
 	if(this->LifeEndRound != 0 && this->LifeEndRound <= RoundNr){
-		print(3, "Lebenszeit für %s abgelaufen.\n", this->Name);
+		print(3, Translate("Lebenszeit für %s abgelaufen.\n",
+						   "Lifetime for %s expired.\n"), this->Name);
 		this->StartLogout(true, true);
 		this->State = SLEEPING;
 		return;
@@ -2303,24 +2367,30 @@ void TMonster::IdleStimulus(void){
 		bool ShouldDespawn = false;
 		if(Master == NULL){
 			if(MasterIsPlayer){
-				print(3, "Kreatur %s verliert ihren Spieler-Master.\n", this->Name);
+				print(3, Translate("Kreatur %s verliert ihren Spieler-Master.\n",
+								   "Creature %s loses its Player-Master.\n"), this->Name);
 			}else{
-				print(3, "Kreatur %s verliert ihr Mutter-Monster.\n", this->Name);
+				print(3, Translate("Kreatur %s verliert ihr Mutter-Monster.\n",
+								   "Creature %s loses its Mother-Monster.\n"), this->Name);
 			}
 			ShouldDespawn = true;
 		}else if(MasterIsPlayer && Master->SummonedCreatures == 0){
-			print(3, "Spieler-Master hat sich eben wieder neu eingeloggt.\n");
+			print(3, Translate("Spieler-Master hat sich eben wieder neu eingeloggt.\n",
+							   "Player-Master has just logged in again.\n"));
 			ShouldDespawn = true;
 		}else if(!MasterIsPlayer && Master->posz != this->posz){
-			print(3, "Mutter-Monster ist zu weit entfernt.\n");
+			print(3, Translate("Mutter-Monster ist zu weit entfernt.\n",
+							   "Mother-Monster is too far away.\n"));
 			ShouldDespawn = true;
 		}else if(std::abs(Master->posz - this->posz) > 1
 				|| std::abs(Master->posx - this->posx) > 30
 				|| std::abs(Master->posy - this->posy) > 30){
 			if(MasterIsPlayer){
-				print(3, "Spieler-Master ist zu weit entfernt.\n");
+				print(3, Translate("Spieler-Master ist zu weit entfernt.\n",
+								   "Player-Master is too far away.\n"));
 			}else{
-				print(3, "Mutter-Monster ist zu weit entfernt.\n");
+				print(3, Translate("Mutter-Monster ist zu weit entfernt.\n",
+								   "Mother-Monster is too far away.\n"));
 			}
 			ShouldDespawn = true;
 		}
@@ -2397,7 +2467,8 @@ void TMonster::IdleStimulus(void){
 			try{
 				Talk(this->ID, Mode, NULL, Text, false);
 			}catch(RESULT r){
-				error("TMonster::IdleStimulus: Exception %d bei Talk.\n", r);
+				error(Translate("TMonster::IdleStimulus: Exception %d bei Talk.\n",
+								"TMonster::IdleStimulus: Exception %d during talk.\n"), r);
 			}
 		}else{
 			// TODO(fusion): The original wouldn't check if `Text` is actually
@@ -2433,7 +2504,8 @@ void TMonster::IdleStimulus(void){
 
 				TCreature *Target = GetCreature(TargetID);
 				if(Target == NULL){
-					error("TMonster::IdleStimulus: Kreatur existiert nicht.\n");
+					error(Translate("TMonster::IdleStimulus: Kreatur existiert nicht.\n",
+									"TMonster::IdleStimulus: Creature does not exist.\n"));
 					continue;
 				}
 
@@ -2469,7 +2541,8 @@ void TMonster::IdleStimulus(void){
 				}else if(Strategy == 3){ // STRATEGY_RANDOM
 					// no-op
 				}else{
-					error("TMonster::IdleStimulus: Unbekannte Strategie %d.\n", Strategy);
+					error(Translate("TMonster::IdleStimulus: Unbekannte Strategie %d.\n",
+									"TMonster::IdleStimulus: Unknown Strategy %d.\n"), Strategy);
 				}
 
 				// NOTE(fusion): We're looking for the creature that maximizes
@@ -2657,7 +2730,8 @@ void TMonster::IdleStimulus(void){
 	// NOTE(fusion): WALKING. What was already bad got even worse.
 	TCreature *Target = GetCreature(this->Target);
 	if(this->Target != 0 && Target == NULL){
-		error("TMonster::IdleStimulus: Kreatur existiert nicht.\n");
+		error(Translate("TMonster::IdleStimulus: Kreatur existiert nicht.\n",
+						"TMonster::IdleStimulus: Creature does not exist.\n"));
 		this->Target = 0;
 	}
 
@@ -2778,7 +2852,8 @@ void TMonster::IdleStimulus(void){
 					if(this->Master != this->Target){
 						this->ToDoAttack();
 					}else{
-						error("TMonster::IdleStimulus: %s greift Master %u an (St=%d, T: %u).\n",
+						error(Translate("TMonster::IdleStimulus: %s greift Master %u an (St=%d, T: %u).\n",
+										"TMonster::IdleStimulus: %s attacks Master %u (St=%d, T: %u).\n"),
 								this->Name, this->Master, this->State, this->Target);
 					}
 				}else{
@@ -2846,7 +2921,8 @@ void TMonster::CreatureMoveStimulus(uint32 CreatureID, int Type){
 	if(this->State == SLEEPING && Type != OBJECT_DELETED){
 		TCreature *Creature = GetCreature(CreatureID);
 		if(Creature == NULL){
-			error("TMonster::CreatureMoveStimulus: Kreatur %u existiert nicht.\n", CreatureID);
+			error(Translate("TMonster::CreatureMoveStimulus: Kreatur %u existiert nicht.\n",
+							"TMonster::CreatureMoveStimulus: Creature %u does not exist.\n"), CreatureID);
 			return;
 		}
 
@@ -2877,7 +2953,8 @@ bool TMonster::CanKickBoxes(void){
 
 void TMonster::KickBoxes(Object Obj){
 	if(!Obj.exists()){
-		error("TMonster::KickBoxes: Übergebenes Objekt existiert nicht.\n");
+		error(Translate("TMonster::KickBoxes: Übergebenes Objekt existiert nicht.\n",
+						"TMonster::KickBoxes: Passed object does not exist.\n"));
 		return;
 	}
 
@@ -2910,25 +2987,30 @@ void TMonster::KickBoxes(Object Obj){
 			Delete(Obj, -1);
 		}
 	}catch(RESULT r){
-		error("TMonster::KickBoxes: Exception %d, Objekt %d.\n",
+		error(Translate("TMonster::KickBoxes: Exception %d, Objekt %d.\n",
+						"TMonster::KickBoxes: Exception %d, Object %d.\n"),
 				r, Obj.getObjectType().TypeID);
-		error("# eigene Position: [%d,%d,%d] - Objektposition: [%d,%d,%d]\n",
+		error(Translate("# eigene Position: [%d,%d,%d] - Objektposition: [%d,%d,%d]\n",
+						"# Own position: [%d,%d,%d] - Object position: [%d,%d,%d]\n"),
 				this->posx, this->posy, this->posz, ObjX, ObjY, ObjZ);
 	}
 }
 
 bool TMonster::KickCreature(TCreature *Creature){
 	if(Creature == NULL){
-		error("TMonster::KickCreature: Übergebene Kreatur existiert nicht.\n");
+		error(Translate("TMonster::KickCreature: Übergebene Kreatur existiert nicht.\n",
+						"TMonster::KickCreature: Surrendered creature does not exist.\n"));
 		return false;
 	}
 
 	if(Creature->Type != MONSTER){
-		error("TMonster::KickCreature: Zu verschiebende Kreatur ist kein Monster.\n");
+		error(Translate("TMonster::KickCreature: Zu verschiebende Kreatur ist kein Monster.\n",
+						"TMonster::KickCreature: Creature to be moved is not a monster.\n"));
 		return false;
 	}
 
-	print(3, "%s verschiebt %s.\n", this->Name, Creature->Name);
+	print(3, Translate("%s verschiebt %s.\n",
+					   "%s is moving %s.\n"), this->Name, Creature->Name);
 
 	// TODO(fusion): Declare these here so they can be used within the catch
 	// block to print out what's on the last position we tried to move the
@@ -2957,20 +3039,24 @@ bool TMonster::KickCreature(TCreature *Creature){
 		}
 
 		if(!CreatureMoved){
-			print(3, "Kein Platz zum Verschieben => Töten.\n");
+			print(3, Translate("Kein Platz zum Verschieben => Töten.\n",
+							   "No room to move => Kill.\n"));
 			GraphicalEffect(Creature->CrObject, EFFECT_BLOCK_HIT);
 			Creature->Combat.AddDamageToCombatList(this->ID,
 					Creature->Skills[SKILL_HITPOINTS]->Get());
 			Creature->Kill();
 		}
 	}catch(RESULT r){
-		error("TMonster::KickCreature: Exception %d, Kreatur %s.\n",
+		error(Translate("TMonster::KickCreature: Exception %d, Kreatur %s.\n",
+						"TMonster::KickCreature: Exception %d, Creature %s.\n"),
 				r, Creature->Name);
-		error("# eigene Position: [%d,%d,%d] - Hindernisposition: [%d,%d,%d]\n",
+		error(Translate("# eigene Position: [%d,%d,%d] - Hindernisposition: [%d,%d,%d]\n",
+						"# Own position: [%d,%d,%d] - Obstacle position: [%d,%d,%d]\n"),
 				this->posx, this->posy, this->posz,
 				Creature->posx, Creature->posy, Creature->posz);
 
-		error("# Objekte auf Zielfeld [%d,%d,%d]:\n", DestX, DestY, DestZ);
+		error(Translate("# Objekte auf Zielfeld [%d,%d,%d]:\n",
+						"# Objects on target field [%d,%d,%d]:\n"), DestX, DestY, DestZ);
 		Object Obj = GetFirstObject(DestX, DestY, DestZ);
 		while(Obj != NONE){
 			error("# %d\n", Obj.getObjectType().TypeID);
@@ -2983,7 +3069,8 @@ bool TMonster::KickCreature(TCreature *Creature){
 
 void TMonster::Convince(TCreature *NewMaster){
 	if(NewMaster == NULL){
-		error("TMonster::Convince: NewMaster ist NULL.");
+		error(Translate("TMonster::Convince: NewMaster ist NULL.\n",
+						"TMonster::Convince: NewMaster is NULL.\n"));
 		return;
 	}
 
@@ -3009,7 +3096,8 @@ void TMonster::Convince(TCreature *NewMaster){
 
 void TMonster::SetTarget(TCreature *NewTarget){
 	if(NewTarget == NULL){
-		error("TMonster::SetTarget: NewTarget ist NULL.\n");
+		error(Translate("TMonster::SetTarget: NewTarget ist NULL.\n",
+						"TMonster::SetTarget: NewTarget is NULL.\n"));
 		return;
 	}
 
@@ -3041,12 +3129,14 @@ bool TMonster::IsFleeing(void){
 
 TCreature *CreateMonster(int Race, int x, int y, int z, int Home, uint32 MasterID, bool ShowEffect){
 	if(!IsRaceValid(Race)){
-		error("CreateMonster: Ungültige Rassennummer %d.\n", Race);
+		error(Translate("CreateMonster: Ungültige Rassennummer %d.\n",
+						"CreateMonster: Invalid race number %d.\n"), Race);
 		return NULL;
 	}
 
 	if(RaceData[Race].Name[0] == 0){
-		error("CreateMonster: Daten für Rasse %d nicht definiert.\n", Race);
+		error(Translate("CreateMonster: Daten für Rasse %d nicht definiert.\n",
+						"CreateMonster: Data for race %d not defined.\n"), Race);
 		return NULL;
 	}
 
@@ -3060,17 +3150,20 @@ TCreature *CreateMonster(int Race, int x, int y, int z, int Home, uint32 MasterI
 
 void ConvinceMonster(TCreature *Master, TCreature *Slave){
 	if(Master == NULL){
-		error("ConvinceMonster: Master existiert nicht.\n");
+		error(Translate("ConvinceMonster: Master existiert nicht.\n",
+						"ConvinceMonster: Master does not exist.\n"));
 		return;
 	}
 
 	if(Slave == NULL){
-		error("ConvinceMonster: Slave existiert nicht.\n");
+		error(Translate("ConvinceMonster: Slave existiert nicht.\n",
+						"ConvinceMonster: Slave does not exist.\n"));
 		return;
 	}
 
 	if(Slave->Type != MONSTER){
-		error("ConvinceMonster: Slave ist kein Monster.\n");
+		error(Translate("ConvinceMonster: Slave ist kein Monster.\n",
+						"ConvinceMonster: Slave is not a Monster.\n"));
 		return;
 	}
 
@@ -3079,17 +3172,20 @@ void ConvinceMonster(TCreature *Master, TCreature *Slave){
 
 void ChallengeMonster(TCreature *Challenger, TCreature *Monster){
 	if(Challenger == NULL){
-		error("ChallengeMonster: Herausforderer existiert nicht.\n");
+		error(Translate("ChallengeMonster: Herausforderer existiert nicht.\n",
+						"ChallengeMonster: Challenger does not exist.\n"));
 		return;
 	}
 
 	if(Monster == NULL){
-		error("ChallengeMonster: Monster existiert nicht.\n");
+		error(Translate("ChallengeMonster: Monster existiert nicht.\n",
+						"ChallengeMonster: Monster does not exist.\n"));
 		return;
 	}
 
 	if(Monster->Type != MONSTER){
-		error("ChallengeMonster: Monster ist kein Monster.\n");
+		error(Translate("ChallengeMonster: Monster ist kein Monster.\n",
+						"ChallengeMonster: Monster is not a Monster.\n"));
 		return;
 	}
 
@@ -3103,7 +3199,8 @@ void ChallengeMonster(TCreature *Challenger, TCreature *Monster){
 void InitNPCs(void){
 	DIR *NpcDir = opendir(NPCPATH);
 	if(NpcDir == NULL){
-		error("InitNPCs: Unterverzeichnis %s nicht gefunden\n", NPCPATH);
+		error(Translate("InitNPCs: Unterverzeichnis %s nicht gefunden\n",
+						"InitNPCs: Subdirectory %s not found\n"), NPCPATH);
 		throw "Cannot init NPCs";
 	}
 

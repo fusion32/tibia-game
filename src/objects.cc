@@ -256,7 +256,8 @@ static const char InstanceAttributeNames[18][30] = {
 // =============================================================================
 void ObjectType::setTypeID(int TypeID){
 	if(!ObjectTypeExists(TypeID)){
-		error("ObjectType::setTypeID: Ungültiger Typ %d.\n", TypeID);
+		error(Translate("ObjectType::setTypeID: Ungültiger Typ %d.\n",
+						"ObjectType::setTypeID: Invalid Type %d.\n"), TypeID);
 		TypeID = 0;
 	}
 
@@ -270,7 +271,8 @@ bool ObjectType::getFlag(FLAG Flag){
 
 uint32 ObjectType::getAttribute(TYPEATTRIBUTE Attribute){
 	if(!this->getFlag(TypeAttributeFlags[Attribute])){
-		error("ObjectType::getAttribute: Typ %d hat kein Flag %d für Attribut %d.\n",
+		error(Translate("ObjectType::getAttribute: Typ %d hat kein Flag %d für Attribut %d.\n",
+						"ObjectType::getAttribute: Type %d has no Flag %d for Attribute %d.\n"),
 				this->TypeID, TypeAttributeFlags[Attribute], Attribute);
 		return 0;
 	}
@@ -293,7 +295,8 @@ int ObjectType::getAttributeOffset(INSTANCEATTRIBUTE Attribute){
 
 const char *ObjectType::getName(int Count){
 	if(this->isCreatureContainer()){
-		error("ObjectType::getName: Der Kreaturtyp hat keinen Namen.\n");
+		error(Translate("ObjectType::getName: Der Kreaturtyp hat keinen Namen.\n",
+						"ObjectType::getName: The creature type has no name.\n"));
 		return NULL;
 	}
 
@@ -379,7 +382,8 @@ bool ObjectTypeExists(uint8 Group, uint8 Number){
 ObjectType GetNewObjectType(uint8 Group, uint8 Number){
 	int TypeID = NewType[GetNewTypeIndex(Group, Number)];
 	if(TypeID < 0){
-		error("GetNewObjectType: Objekttyp %u/%u existiert nicht.\n", Group, Number);
+		error(Translate("GetNewObjectType: Objekttyp %u/%u existiert nicht.\n",
+						"GetNewObjectType: Object type %u/%u does not exist.\n"), Group, Number);
 		TypeID = 0;
 	}
 
@@ -388,7 +392,8 @@ ObjectType GetNewObjectType(uint8 Group, uint8 Number){
 
 void GetOldObjectType(ObjectType Type, uint8 *Group, uint8 *Number){
 	if(!ObjectTypeExists(Type.TypeID)){
-		error("GetOldObjectType: Ungültiger Typ %d.\n", Type.TypeID);
+		error(Translate("GetOldObjectType: Ungültiger Typ %d.\n",
+						"GetOldObjectType: Invalid Type %d.\n"), Type.TypeID);
 		return;
 	}
 
@@ -402,17 +407,20 @@ ObjectType GetSpecialObject(SPECIALMEANING Meaning){
 	if(Meaning > 0 && Meaning < NARRAY(SpecialObjects)){
 		TypeID = SpecialObjects[Meaning].TypeID;
 		if(TypeID == 0){
-			error("GetSpecialObject: Kein Objekttyp mit Bedeutung %d definiert.\n", Meaning);
+			error(Translate("GetSpecialObject: Kein Objekttyp mit Bedeutung %d definiert.\n",
+							"GetSpecialObject: No object type with meaning %d defined.\n"), Meaning);
 		}
 	}else{
-		error("GetSpecialObject: Ungültige Bedeutung %d.\n", Meaning);
+		error(Translate("GetSpecialObject: Ungültige Bedeutung %d.\n",
+						"GetSpecialObject: Invalid meaning %d.\n"), Meaning);
 	}
 	return ObjectType(TypeID);
 }
 
 ObjectType GetObjectTypeByName(const char *SearchName, bool Movable){
 	if(SearchName == NULL){
-		error("GetObjectTypeByName: SearchName ist NULL.\n");
+		error(Translate("GetObjectTypeByName: SearchName ist NULL.\n",
+						"GetObjectTypeByName: SearchName is NULL.\n"));
 		return ObjectType();
 	}
 
@@ -574,7 +582,8 @@ static void LoadConversionList(void){
 	snprintf(FileName, sizeof(FileName), "%s/conversion.lst", DATAPATH);
 	std::ifstream IN(FileName, std::ios_base::in);
 	if(IN.fail()){
-		error("LoadConversionList: Kann Datei %s nicht öffnen.\n", FileName);
+		error(Translate("LoadConversionList: Kann Datei %s nicht öffnen.\n",
+						"LoadConversionList: Cannot open file %s.\n"), FileName);
 		throw "Cannot open conversion.lst";
 	}
 
@@ -589,7 +598,8 @@ static void LoadConversionList(void){
 
 		// TODO(fusion): Review this?
 		if(TypeID <= 0 || TypeID >= NARRAY(OldGroup)){
-			error("LoadConversionList: Ungültiger Typ %d.\n", TypeID);
+			error(Translate("LoadConversionList: Ungültiger Typ %d.\n",
+							"LoadConversionList: Invalid Type %d.\n"), TypeID);
 			throw "Error while loading conversion.lst";
 		}
 

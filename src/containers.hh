@@ -21,12 +21,14 @@ struct vector{
 	vector(int min, int max, int block){
 		int space = (max - min) + 1;
 		if(space < 1){
-			error("vector: Ungueltige Feldgroesse %d bis %d.\n", min, max);
+			error(Translate("vector: Ungueltige Feldgroesse %d bis %d.\n",
+							"vector: Invalid field size %d to %d.\n"), min, max);
 			space = 1;
 		}
 
 		if(block < 0){
-			error("vector: Ungueltige Blockgroesse %d.\n", block);
+			error(Translate("vector: Ungueltige Blockgroesse %d.\n",
+							"vector: Invalid block size %d.\n"), block);
 			block = 0;
 		}
 
@@ -176,7 +178,8 @@ struct priority_queue{
 
 	void deleteMin(void){
 		if(this->Entries < 1){
-			error("priority_queue::deleteMin: Warteschlange ist leer.\n");
+			error(Translate("priority_queue::deleteMin: Warteschlange ist leer.\n",
+							"priority_queue::deleteMin: Queue is empty.\n"));
 			return;
 		}
 
@@ -234,7 +237,8 @@ struct matrix{
 		int dy = (ymax - ymin) + 1;
 
 		if(dx < 1 || dy < 1){
-			error("matrix: Ungueltige Feldgroesse %d..%d, %d..%d.\n", xmin, xmax, ymin, ymax);
+			error(Translate("matrix: Ungueltige Feldgroesse %d..%d, %d..%d.\n",
+							"matrix: Invalid field size %d..%d, %d..%d.\n"), xmin, xmax, ymin, ymax);
 
 			if(dx < 1){
 				dx = 1;
@@ -278,7 +282,8 @@ struct matrix{
 		int xoffset = x - this->xmin;
 		int yoffset = y - this->ymin;
 		if(xoffset < 0 || xoffset >= this->dx || yoffset < 0 || yoffset >= this->dy){
-			error("matrix::operator(): Ungueltiger Index %d/%d.\n", x, y);
+			error(Translate("matrix::operator(): Ungueltiger Index %d/%d.\n",
+							"matrix::operator(): Invalid index %d/%d.\n"), x, y);
 			return &this->entry[0];
 		}else{
 			// TODO(fusion): Are we really storing this in row major order?
@@ -305,7 +310,8 @@ struct matrix3d{
 		int dz = (zmax - zmin) + 1;
 
 		if(dx < 1 || dy < 1 || dz < 1){
-			error("matrix3d: Ungueltige Feldgroesse %d..%d, %d..%d, %d..%d.\n",
+			error(Translate("matrix3d: Ungueltige Feldgroesse %d..%d, %d..%d, %d..%d.\n",
+							"matrix3d: Invalid field size %d..%d, %d..%d, %d..%d.\n"),
 					xmin, xmax, ymin, ymax, zmin, zmax);
 
 			if(dx < 1){
@@ -349,7 +355,8 @@ struct matrix3d{
 		if(xoffset < 0 || xoffset >= this->dx
 				|| yoffset < 0 || yoffset >= this->dy
 				|| zoffset < 0 || zoffset >= this->dz){
-			error("matrix3d::operator(): Ungueltiger Index %d/%d/%d.\n", x, y, z);
+			error(Translate("matrix3d::operator(): Ungueltiger Index %d/%d/%d.\n",
+							"matrix3d::operator(): Invalid index %d/%d/%d.\n"), x, y, z);
 			return &this->entry[0];
 		}else{
 			// TODO(fusion): Same as `matrix::at` on the XY plane.
@@ -410,7 +417,8 @@ struct list{
 
 	void remove(listnode<T> *node){
 		if(node == NULL){
-			error("list::remove: node ist NULL.\n");
+			error(Translate("list::remove: node ist NULL.\n",
+							"list::remove: node is NULL.\n"));
 			return;
 		}
 
@@ -483,7 +491,8 @@ struct fifo{
 
 	void remove(void){
 		if(this->Tail > this->Head){
-			error("fifo::remove: Fifo ist leer.\n");
+			error(Translate("fifo::remove: Fifo ist leer.\n",
+							"fifo::remove: Fifo is empty.\n"));
 			return;
 		}
 

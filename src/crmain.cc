@@ -31,7 +31,8 @@ TFindCreatures::TFindCreatures(int RadiusX, int RadiusY, int CenterX, int Center
 TFindCreatures::TFindCreatures(int RadiusX, int RadiusY, uint32 CreatureID, int Mask){
 	TCreature *Creature = GetCreature(CreatureID);
 	if(Creature == NULL){
-		error("TFindCreatures::TFindCreatures: Kreatur existiert nicht.\n");
+		error(Translate("TFindCreatures::TFindCreatures: Kreatur existiert nicht.\n",
+						"TFindCreatures::TFindCreatures: Creature does not exist.\n"));
 		this->finished = true;
 		return;
 	}
@@ -42,7 +43,8 @@ TFindCreatures::TFindCreatures(int RadiusX, int RadiusY, uint32 CreatureID, int 
 
 TFindCreatures::TFindCreatures(int RadiusX, int RadiusY, Object Obj, int Mask){
 	if(!Obj.exists()){
-		error("TFindCreatures::TFindCreatures: Übergebenes Objekt existiert nicht.\n");
+		error(Translate("TFindCreatures::TFindCreatures: Übergebenes Objekt existiert nicht.\n",
+						"TFindCreatures::TFindCreatures: Passed object does not exist.\n"));
 		this->finished = true;
 		return;
 	}
@@ -96,7 +98,8 @@ uint32 TFindCreatures::getNext(void){
 
 		TCreature *Creature = GetCreature(this->ActID);
 		if(Creature == NULL){
-			error("TFindCreatures::getNext: Kreatur existiert nicht.\n");
+			error(Translate("TFindCreatures::getNext: Kreatur existiert nicht.\n",
+							"TFindCreatures::getNext: Creature does not exist.\n"));
 			this->ActID = 0;
 			continue;
 		}
@@ -188,7 +191,8 @@ TCreature::~TCreature(void){
 						PoolLiquid);
 			}catch(RESULT r){
 				if(r != NOROOM && r != DESTROYED){
-					error("TCreature::~TCreature: Kann Blutlache nicht setzen (Exc %d, Pos [%d,%d,%d]).\n",
+					error(Translate("TCreature::~TCreature: Kann Blutlache nicht setzen (Exc %d, Pos [%d,%d,%d]).\n",
+									"TCreature::~TCreature: Cannot set Blood Pool (Exc %d, Pos [%d,%d,%d]).\n"),
 							r, this->posx, this->posy, this->posz);
 				}
 			}
@@ -206,7 +210,8 @@ TCreature::~TCreature(void){
 					try{
 						Delete(Obj, -1);
 					}catch(RESULT r){
-						error("TCreature::~TCreature: Exception %d beim Löschen eines Feldes.\n", r);
+						error(Translate("TCreature::~TCreature: Exception %d beim Löschen eines Feldes.\n",
+										"TCreature::~TCreature: Exception %d when deleting a field.\n"), r);
 					}
 				}
 				Obj = Next;
@@ -216,7 +221,8 @@ TCreature::~TCreature(void){
 		try{
 			Object Con = GetMapContainer(this->posx, this->posy, this->posz);
 			Object Corpse = Create(Con, CorpseType, 0);
-			Log("game", "Tod von %s: LoseInventory=%d.\n", this->Name, this->LoseInventory);
+			Log("game", Translate("Tod von %s: LoseInventory=%d.\n",
+								  "Death of %s: LoseInventory=%d.\n"), this->Name, this->LoseInventory);
 
 			if(this->Type == PLAYER){
 				char Help[128];
@@ -253,7 +259,8 @@ TCreature::~TCreature(void){
 				((TPlayer*)this)->SaveInventory();
 			}
 		}catch(RESULT r){
-			error("TCreature::~TCreature: Kann Leiche/Inventory nicht ablegen (Exc %d, Pos [%d,%d,%d], %s).\n",
+			error(Translate("TCreature::~TCreature: Kann Leiche/Inventory nicht ablegen (Exc %d, Pos [%d,%d,%d], %s).\n",
+							"TCreature::~TCreature: Cannot drop corpse/inventory (Exc %d, Pos [%d,%d,%d], %s).\n"),
 					r, this->posx, this->posy, this->posz, this->Name);
 		}
 	}
@@ -278,7 +285,8 @@ TCreature::~TCreature(void){
 			KnownCreature != NULL;
 			KnownCreature = KnownCreature->Next){
 		if(KnownCreature->CreatureID != this->ID){
-			error("TCreature::~TCreature: Verkettungsfehler bei Kreatur %u.\n", this->ID);
+			error(Translate("TCreature::~TCreature: Verkettungsfehler bei Kreatur %u.\n",
+							"TCreature::~TCreature: Creature chaining error %u.\n"), this->ID);
 		}
 		KnownCreature->State = KNOWNCREATURE_FREE;
 	}
@@ -286,7 +294,8 @@ TCreature::~TCreature(void){
 
 void TCreature::SetID(uint32 CharacterID){
 	if(this->ID != 0){
-		error("TCreature::SetID: ID ist schon gesetzt.\n");
+		error(Translate("TCreature::SetID: ID ist schon gesetzt.\n",
+						"TCreature::SetID: ID is already set.\n"));
 	}
 
 	uint32 CreatureID = 0;
@@ -301,13 +310,14 @@ void TCreature::SetID(uint32 CharacterID){
 		}
 
 		if(!Found){
-			error("TCreature::SetID: 16x hintereinander doppelte ID."
-					" Verwende nun doppelte ID %d\n", CreatureID);
+			error(Translate("TCreature::SetID: 16x hintereinander doppelte ID. Verwende nun doppelte ID %d\n",
+							"TCreature::SetID: 16x duplicate ID in a row. Now use duplicate ID %d\n"), CreatureID);
 		}
 	}else{
 		CreatureID = CharacterID;
 		if(GetCreature(CreatureID) != NULL){
-			error("TCreature::SetID: Doppelte Character-ID %d gefunden.\n", CharacterID);
+			error(Translate("TCreature::SetID: Doppelte Character-ID %d gefunden.\n",
+							"TCreature::SetID: Duplicate character ID %d found.\n"), CharacterID);
 		}
 	}
 
@@ -321,7 +331,8 @@ void TCreature::DelID(void){
 	uint32 ListIndex = this->ID % NARRAY(HashList);
 	TCreature *First = HashList[ListIndex];
 	if(First == NULL){
-		error("TCreature::DelID: Hasheintrag nicht gefunden id = %d\n", this->ID);
+		error(Translate("TCreature::DelID: Hasheintrag nicht gefunden id = %d\n",
+						"TCreature::DelID: Hash entry not found id = %d\n"), this->ID);
 		return;
 	}
 
@@ -332,7 +343,8 @@ void TCreature::DelID(void){
 		TCreature *Current = First->NextHashEntry;
 		while(true){
 			if(Current == NULL){
-				error("TCreature::DelID: id=%d nicht gefunden.\n", this->ID);
+				error(Translate("TCreature::DelID: id=%d nicht gefunden.\n",
+								"TCreature::DelID: id=%d not found.\n"), this->ID);
 				return;
 			}
 
@@ -428,7 +440,8 @@ int TCreature::GetHealth(void){
 	int MaxHitPoints = this->Skills[SKILL_HITPOINTS]->Max;
 	if(MaxHitPoints <= 0){
 		if(!this->IsDead){
-			error("TCreature::GetHealth: MaxHitpoints von %s ist %d, obwohl sie nicht tot ist.\n",
+			error(Translate("TCreature::GetHealth: MaxHitpoints von %s ist %d, obwohl sie nicht tot ist.\n",
+							"TCreature::GetHealth: MaxHitpoints of %s is %d, although she is not dead.\n"),
 					this->Name, MaxHitPoints);
 		}
 		return 0;
@@ -445,7 +458,8 @@ int TCreature::GetHealth(void){
 int TCreature::GetSpeed(void){
 	TSkill *GoStrength = this->Skills[SKILL_GO_STRENGTH];
 	if(GoStrength == NULL){
-		error("TCreature::GetSpeed: Kein Skill GOSTRENGTH vorhanden.\n");
+		error(Translate("TCreature::GetSpeed: Kein Skill GOSTRENGTH vorhanden.\n",
+						"TCreature::GetSpeed: No GOSTRENGTH skill available.\n"));
 		return 0;
 	}
 
@@ -531,12 +545,14 @@ int TCreature::Damage(TCreature *Attacker, int Damage, int DamageType){
 							Change(Obj, WearOutType, 0);
 						}
 					}catch(RESULT r){
-						error("TCreature::Damage: Exception %d beim Abnutzen von Objekt %d.\n",
+						error(Translate("TCreature::Damage: Exception %d beim Abnutzen von Objekt %d.\n",
+										"TCreature::Damage: Exception %d when wearing out object %d.\n"),
 								r, ObjType.TypeID);
 					}
 				}
 			}else if(ObjType.getFlag(PROTECTION) && !ObjType.getFlag(CLOTHES)){
-				error("TCreature::Damage: Objekt %d hat PROTECTION, aber nicht CLOTHES.\n",
+				error(Translate("TCreature::Damage: Objekt %d hat PROTECTION, aber nicht CLOTHES.\n",
+								"TCreature::Damage: Object %d has PROTECTION, but not CLOTHES.\n"),
 						ObjType.TypeID);
 			}
 		}
@@ -704,7 +720,8 @@ int TCreature::Damage(TCreature *Attacker, int Damage, int DamageType){
 				break;
 			}
 			default:{
-				error("TCreature::Damage: Ungültiger Bluttyp %d für Rasse %d.\n",
+				error(Translate("TCreature::Damage: Ungültiger Bluttyp %d für Rasse %d.\n",
+								"TCreature::Damage: Invalid blood type %d for race %d.\n"),
 						RaceData[this->Race].Blood, this->Race);
 				break;
 			}
@@ -724,7 +741,8 @@ int TCreature::Damage(TCreature *Attacker, int Damage, int DamageType){
 	}else{
 		// TODO(fusion): The original decompiled function would return here but
 		// I don't think it's a good idea because it would skip death handling.
-		error("TCreature::Damage: Ungültiger Schadenstyp %d.\n", DamageType);
+		error(Translate("TCreature::Damage: Ungültiger Schadenstyp %d.\n",
+						"TCreature::Damage: Invalid damage type %d.\n"), DamageType);
 		//return Damage;
 	}
 
@@ -777,7 +795,8 @@ int TCreature::Damage(TCreature *Attacker, int Damage, int DamageType){
 							// just check if there is an amulet of loss in the necklace
 							// container instead of iterating over all inventory.
 						}catch(RESULT r){
-							error("TCreature::Damage: Exception %d beim Löschen von Objekt %d.\n",
+							error(Translate("TCreature::Damage: Exception %d beim Löschen von Objekt %d.\n",
+											"TCreature::Damage: Exception %d when deleting object %d.\n"),
 									r, AmuletOfLossType.TypeID);
 						}
 					}
@@ -809,7 +828,8 @@ int TCreature::Damage(TCreature *Attacker, int Damage, int DamageType){
 			}else{
 				// NOTE(fusion): We probably don't expect any other damage type
 				// as the cause of death when there is no attacker.
-				error("TCreature::Damage: Ungültiger Schadenstyp %d als Todesursache.\n", DamageType);
+				error(Translate("TCreature::Damage: Ungültiger Schadenstyp %d als Todesursache.\n",
+								"TCreature::Damage: Invalid damage type %d as cause of death.\n"), DamageType);
 			}
 		}else{
 			AddKillStatistics(Attacker->Race, this->Race);
@@ -961,7 +981,8 @@ void InsertChainCreature(TCreature *Creature, int CoordX, int CoordY){
 		// TODO(fusion): Maybe a typo on the name of the function? I thought it
 		// could be some type of macro because there was no function name mismatch
 		// until now.
-		error("DeleteChainCreature: Übegebene Kreatur existiert nicht.\n");
+		error(Translate("DeleteChainCreature: Übegebene Kreatur existiert nicht.\n",
+						"DeleteChainCreature: Surrendered creature does not exist.\n"));
 		return;
 	}
 
@@ -982,7 +1003,8 @@ void InsertChainCreature(TCreature *Creature, int CoordX, int CoordY){
 
 void DeleteChainCreature(TCreature *Creature){
 	if(Creature == NULL){
-		error("DeleteChainCreature: Übegebene Kreatur existiert nicht.\n");
+		error(Translate("DeleteChainCreature: Übegebene Kreatur existiert nicht.\n",
+						"DeleteChainCreature: Surrendered creature does not exist.\n"));
 		return;
 	}
 
@@ -999,13 +1021,15 @@ void DeleteChainCreature(TCreature *Creature){
 		uint32 CurrentID = *FirstID;
 		while(true){
 			if(CurrentID == 0){
-				error("DeleteChainCreature: Kreatur nicht gefunden.\n");
+				error(Translate("DeleteChainCreature: Kreatur nicht gefunden.\n",
+								"DeleteChainCreature: Creature not found.\n"));
 				return;
 			}
 
 			TCreature *Current = GetCreature(CurrentID);
 			if(Current == NULL){
-				error("DeleteChainCreature: Kreatur existiert nicht.\n");
+				error(Translate("DeleteChainCreature: Kreatur existiert nicht.\n",
+								"DeleteChainCreature: Creature does not exist.\n"));
 				return;
 			}
 
@@ -1021,7 +1045,8 @@ void DeleteChainCreature(TCreature *Creature){
 
 void MoveChainCreature(TCreature *Creature, int CoordX, int CoordY){
 	if(Creature == NULL){
-		error("DeleteChainCreature: Übegebene Kreatur existiert nicht.\n");
+		error(Translate("DeleteChainCreature: Übegebene Kreatur existiert nicht.\n",
+						"DeleteChainCreature: Surrendered creature does not exist.\n"));
 		return;
 	}
 
@@ -1040,7 +1065,8 @@ void ProcessCreatures(void){
 	for(int Index = 0; Index < FirstFreeCreature; Index += 1){
 		TCreature *Creature = *CreatureList.at(Index);
 		if(Creature == NULL){
-			error("ProcessCreatures: Kreatur %d existiert nicht.\n", Index);
+			error(Translate("ProcessCreatures: Kreatur %d existiert nicht.\n",
+							"ProcessCreatures: Creature %d does not exist.\n"), Index);
 			continue;
 		}
 
@@ -1070,13 +1096,15 @@ void ProcessCreatures(void){
 		}
 
 		if(!Creature->IsDead && Creature->Skills[SKILL_HITPOINTS]->Get() <= 0){
-			error("ProcessCreatures: Kreatur %s ist nicht tot, obwohl sie keine HP mehr hat.\n", Creature->Name);
+			error(Translate("ProcessCreatures: Kreatur %s ist nicht tot, obwohl sie keine HP mehr hat.\n",
+							"ProcessCreatures: Creature %s is not dead even though it has no HP left.\n"), Creature->Name);
 			Creature->Death();
 		}
 
 		if(Creature->LoggingOut && Creature->LogoutPossible() == 0){ // LOGOUT_POSSIBLE ?
 			if(Creature->IsDead && Creature->Skills[SKILL_HITPOINTS]->Get() > 0){
-				error("ProcessCreatures: Kreatur %s hat HP, obwohl sie tot ist.\n", Creature->Name);
+				error(Translate("ProcessCreatures: Kreatur %s hat HP, obwohl sie tot ist.\n",
+								"ProcessCreatures: Creature %s has HP even though it is dead.\n"), Creature->Name);
 				Creature->Skills[SKILL_HITPOINTS]->Set(0);
 			}
 
@@ -1095,7 +1123,8 @@ void ProcessSkills(void){
 	for(int Index = 0; Index < FirstFreeCreature; Index += 1){
 		TCreature *Creature = *CreatureList.at(Index);
 		if(Creature == NULL){
-			error("ProcessSkills: Kreatur %d existiert nicht.\n", Index);
+			error(Translate("ProcessSkills: Kreatur %d existiert nicht.\n",
+							"ProcessSkills: Creature %d does not exist.\n"), Index);
 			continue;
 		}
 
@@ -1248,7 +1277,8 @@ int GetRaceByName(const char *RaceName){
 
 const char *GetRaceName(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceName: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceName: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceName: Invalid race number %d.\n"), Race);
 		return NULL;
 	}
 
@@ -1257,7 +1287,8 @@ const char *GetRaceName(int Race){
 
 TOutfit GetRaceOutfit(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceOutfit: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceOutfit: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceOutfit: Invalid race number %d.\n"), Race);
 		return RaceData[1].Outfit;
 	}
 
@@ -1266,7 +1297,8 @@ TOutfit GetRaceOutfit(int Race){
 
 bool GetRaceNoSummon(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceNoSummon: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceNoSummon: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceNoSummon: Invalid race number %d.\n"), Race);
 		return true;
 	}
 
@@ -1275,7 +1307,8 @@ bool GetRaceNoSummon(int Race){
 
 bool GetRaceNoConvince(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceNoConvince: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceNoConvince: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceNoConvince: Invalid race number %d.\n"), Race);
 		return true;
 	}
 
@@ -1284,7 +1317,8 @@ bool GetRaceNoConvince(int Race){
 
 bool GetRaceNoIllusion(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceNoIllusion: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceNoIllusion: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceNoIllusion: Invalid race number %d.\n"), Race);
 		return true;
 	}
 
@@ -1293,7 +1327,8 @@ bool GetRaceNoIllusion(int Race){
 
 bool GetRaceNoParalyze(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceNoParalyze: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceNoParalyze: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceNoParalyze: Invalid race number %d.\n"), Race);
 		return true;
 	}
 
@@ -1302,7 +1337,8 @@ bool GetRaceNoParalyze(int Race){
 
 int GetRaceSummonCost(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceSummonCost: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceSummonCost: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceSummonCost: Invalid race number %d.\n"), Race);
 		return 0;
 	}
 
@@ -1311,7 +1347,8 @@ int GetRaceSummonCost(int Race){
 
 int GetRacePoison(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRacePoison: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRacePoison: Ungültige Rassen-Nummer %d.\n",
+						"GetRacePoison: Invalid race number %d.\n"), Race);
 		return 0;
 	}
 
@@ -1320,7 +1357,8 @@ int GetRacePoison(int Race){
 
 bool GetRaceUnpushable(int Race){
 	if(!IsRaceValid(Race)){
-		error("GetRaceUnpushable: Ungültige Rassen-Nummer %d.\n", Race);
+		error(Translate("GetRaceUnpushable: Ungültige Rassen-Nummer %d.\n",
+						"GetRaceUnpushable: Invalid race number %d.\n"), Race);
 		return true;
 	}
 
@@ -1688,7 +1726,8 @@ void LoadRaces(void){
 
 	DIR *MonsterDir = opendir(MONSTERPATH);
 	if(MonsterDir == NULL){
-		error("LoadRaces: Unterverzeichnis %s nicht gefunden\n", MONSTERPATH);
+		error(Translate("LoadRaces: Unterverzeichnis %s nicht gefunden\n",
+						"LoadRaces: Subdirectory %s not found\n"), MONSTERPATH);
 		throw "Cannot load races";
 	}
 
@@ -1737,7 +1776,8 @@ TAttackWave::~TAttackWave(void){
 void LoadMonsterRaid(const char *FileName, int Start,
 		bool *Type, int *Date, int *Interval, int *Duration){
 	if(FileName == NULL){
-		error("LoadMonsterRaid: Dateiname ist NULL.\n");
+		error(Translate("LoadMonsterRaid: Dateiname ist NULL.\n",
+						"LoadMonsterRaid: File name is NULL.\n"));
 		throw "cannot load monster raid";
 	}
 
@@ -1760,7 +1800,8 @@ void LoadMonsterRaid(const char *FileName, int Start,
 	*Duration = 0;
 
 	if(Start >= 0){
-		print(1, "Plane Raid %s ein für Runde %d.\n", FileName, Start);
+		print(1, Translate("Plane Raid %s ein für Runde %d.\n",
+						   "Scheduling Raid %s for round %d.\n"), FileName, Start);
 	}
 
 	// NOTE(fusion): We expect the first few attributes describing the raid to
@@ -1902,7 +1943,8 @@ void LoadMonsterRaid(const char *FileName, int Start,
 void LoadMonsterRaids(void){
 	DIR *MonsterDir = opendir(MONSTERPATH);
 	if(MonsterDir == NULL){
-		error("LoadMonsterRaids: Unterverzeichnis %s nicht gefunden.\n", MONSTERPATH);
+		error(Translate("LoadMonsterRaids: Unterverzeichnis %s nicht gefunden.\n",
+						"LoadMonsterRaids: Subdirectory %s not found.\n"), MONSTERPATH);
 		throw "Cannot load monster raids";
 	}
 
@@ -1993,7 +2035,8 @@ void ProcessMonsterRaids(void){
 		}
 
 		AttackWaveQueue.deleteMin();
-		print(2, "Angriff von Monstern der Rasse %d.\n", Wave->Race);
+		print(2, Translate("Angriff von Monstern der Rasse %d.\n",
+						   "Attack by monsters of race %d.\n"), Wave->Race);
 		if(Wave->Message != 0){
 			BroadcastMessage(TALK_EVENT_MESSAGE, "%s", GetDynamicString(Wave->Message));
 		}
@@ -2049,8 +2092,8 @@ void ProcessMonsterRaids(void){
 								GetSpecialObject(DEFAULT_CONTAINER),
 								0);
 					}catch(RESULT r){
-						error("ProcessMonsterRaids: Exception %d bei Rasse %d"
-								" beim Erstellen des Rucksacks.\n", r, Wave->Race);
+						error(Translate("ProcessMonsterRaids: Exception %d bei Rasse %d beim Erstellen des Rucksacks.\n",
+										"ProcessMonsterRaids: Exception %d for race %d when creating the backpack.\n"), r, Wave->Race);
 						continue;
 					}
 				}
@@ -2063,7 +2106,8 @@ void ProcessMonsterRaids(void){
 					Amount = 0;
 				}
 
-				print(2, "Verteile %d Objekte vom Typ %d.\n", Amount, ItemType.TypeID);
+				print(2, Translate("Verteile %d Objekte vom Typ %d.\n",
+								   "Distribute %d objects of type %d.\n"), Amount, ItemType.TypeID);
 				for(int j = 0; j < Repeat; j += 1){
 					// TODO(fusion): What's the difference between using `Create`
 					// and `CreateAtCreature` here? Maybe it checks carry strength,
@@ -2088,14 +2132,14 @@ void ProcessMonsterRaids(void){
 							Item = CreateAtCreature(Creature->ID, ItemType, Amount);
 						}
 					}catch(RESULT r){
-						error("ProcessMonsterRaids: Exception %d bei Rasse %d, ggf."
-							" CarryStrength erhöhen.\n", r, Wave->Race);
+						error(Translate("ProcessMonsterRaids: Exception %d bei Rasse %d, ggf. CarryStrength erhöhen.\n",
+										"ProcessMonsterRaids: Exception %d for race %d, increase CarryStrength if necessary.\n"), r, Wave->Race);
 						break;
 					}
 
 					if(Item.getContainer().getObjectType().isMapContainer()){
-						error("ProcessMonsterRaids: Objekt fällt auf die Karte."
-								" CarryStrength für Rasse %d erhöhen.\n", Wave->Race);
+						error(Translate("ProcessMonsterRaids: Objekt fällt auf die Karte. CarryStrength für Rasse %d erhöhen.\n",
+										"ProcessMonsterRaids: Object drops onto the map. Increase CarryStrength for race %d.\n"), Wave->Race);
 						Delete(Item, -1);
 						// TODO(fusion): Should probably stop this inner loop here.
 					}

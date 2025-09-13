@@ -1,10 +1,15 @@
 #include "common.hh"
+#include "config.hh"
 
 #include <sys/stat.h>
 
 static TErrorFunction *ErrorFunction;
 static TPrintFunction *PrintFunction;
 static char StandardLogFile[4096];
+
+const char *Translate(const char *German, const char *English){
+	return (Language == TLanguage::ENGLISH) ? English : German;
+}
 
 void SetErrorFunction(TErrorFunction *Function){
 	ErrorFunction = Function;
@@ -35,7 +40,8 @@ void LogFileHandler(const char *Text){
 	if(File != NULL){
 		fprintf(File, "%s", Text);
 		if(fclose(File) != 0){
-			error("LogfileHandler: Fehler %d beim Schließen der Datei.\n", errno);
+			error(Translate("LogfileHandler: Fehler %d beim Schließen der Datei.\n",
+							"LogfileHandler: Error %d closing file.\n"), errno);
 		}
 	}
 }
@@ -88,7 +94,8 @@ bool FileExists(const char *FileName){
 	bool Result = true;
 	if(stat(FileName, &Buffer) != 0){
 		if(errno != ENOENT){
-			error("FileExists: Unerwarteter Fehlercode %d.\n", errno);
+			error(Translate("FileExists: Unerwarteter Fehlercode %d.\n",
+							"FileExists: Unexpected error code %d.\n"), errno);
 		}
 		Result = false;
 	}
@@ -248,7 +255,8 @@ uint32 TReadStream::readQuad(void){
 
 void TReadStream::readString(char *Buffer, int MaxLength){
 	if(Buffer == NULL || MaxLength == 0){
-		error("TReadStream::readString: Übergebener Puffer existiert nicht.\n");
+		error(Translate("TReadStream::readString: Übergebener Puffer existiert nicht.\n",
+						"TReadStream::readString: Passed buffer does not exist.\n"));
 		throw "internal error";
 	}
 
@@ -273,7 +281,8 @@ void TReadStream::readString(char *Buffer, int MaxLength){
 
 void TReadStream::readBytes(uint8 *Buffer, int Count){
 	if(Buffer == NULL){
-		error("TReadStream::readBytes: Übergebener Puffer existiert nicht.\n");
+		error(Translate("TReadStream::readBytes: Übergebener Puffer existiert nicht.\n",
+						"TReadStream::readBytes: Passed buffer does not exist.\n"));
 		throw "internal error";
 	}
 
@@ -286,10 +295,12 @@ void TReadStream::readBytes(uint8 *Buffer, int Count){
 // =============================================================================
 TReadBuffer::TReadBuffer(const uint8 *Data, int Size){
 	if(Data == NULL){
-		error("TReadBuffer::TReadBuffer: data ist NULL.\n");
+		error(Translate("TReadBuffer::TReadBuffer: data ist NULL.\n",
+						"TReadBuffer::TReadBuffer: data is NULL.\n"));
 		Size = 0;
 	}else if(Size < 0){
-		error("TReadBuffer::TReadBuffer: Ungültige Datengröße %d.\n", Size);
+		error(Translate("TReadBuffer::TReadBuffer: Ungültige Datengröße %d.\n",
+						"TReadBuffer::TReadBuffer: Invalid data size %d.\n"), Size);
 		Size = 0;
 	}
 
@@ -335,7 +346,8 @@ uint32 TReadBuffer::readQuad(void){
 
 void TReadBuffer::readBytes(uint8 *Buffer, int Count){
 	if(Buffer == NULL || Count <= 0){
-		error("TReadBuffer::readBytes: Übergebener Puffer existiert nicht.\n");
+		error(Translate("TReadBuffer::readBytes: Übergebener Puffer existiert nicht.\n",
+						"TReadBuffer::readBytes: Passed buffer does not exist.\n"));
 		throw "buffer not existing";
 	}
 
@@ -399,7 +411,8 @@ void TWriteStream::writeString(const char *String){
 
 void TWriteStream::writeBytes(const uint8 *Buffer, int Count){
 	if(Buffer == NULL){
-		error("TWriteStream::writeBytes: Übergebener Puffer existiert nicht.\n");
+		error(Translate("TWriteStream::writeBytes: Übergebener Puffer existiert nicht.\n",
+						"TWriteStream::writeBytes: Passed buffer does not exist.\n"));
 		throw "internal error";
 	}
 
@@ -412,10 +425,12 @@ void TWriteStream::writeBytes(const uint8 *Buffer, int Count){
 // =============================================================================
 TWriteBuffer::TWriteBuffer(uint8 *Data, int Size){
 	if(Data == NULL){
-		error("TWriteBuffer::TWriteBuffer: data ist NULL.\n");
+		error(Translate("TWriteBuffer::TWriteBuffer: data ist NULL.\n",
+						"TWriteBuffer::TWriteBuffer: data is NULL.\n"));
 		Size = 0;
 	}else if(Size < 0){
-		error("TWriteBuffer::TWriteBuffer: Ungültige Datengröße %d.\n", Size);
+		error(Translate("TWriteBuffer::TWriteBuffer: Ungültige Datengröße %d.\n",
+						"TWriteBuffer::TWriteBuffer: Invalid data size %d.\n"), Size);
 		Size = 0;
 	}
 

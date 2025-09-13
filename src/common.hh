@@ -168,6 +168,7 @@ uint32 GetRoundForNextMinute(void);
 
 // utils.cc
 // =============================================================================
+const char *Translate(const char *German, const char *English);
 typedef void TErrorFunction(const char *Text);
 typedef void TPrintFunction(int Level, const char *Text);
 void SetErrorFunction(TErrorFunction *Function);
@@ -201,7 +202,8 @@ void ClearBit(uint8 *BitSet, int Index);
 template<typename T>
 void RandomShuffle(T *Buffer, int Size){
 	if(Buffer == NULL){
-		error("RandomShuffle: Buffer ist NULL.\n");
+		error(Translate("RandomShuffle: Buffer ist NULL.\n",
+						"RandomShuffle: Buffer is NULL.\n"));
 		return;
 	}
 
