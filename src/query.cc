@@ -2,6 +2,7 @@
 #include "config.hh"
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <poll.h>
@@ -66,7 +67,7 @@ bool ResolveHostNameAddress(const char *HostName, in_addr_t *OutAddr){
 void TQueryManagerConnection::connect(void){
 	for(int i = 0; i < NumberOfQueryManagers; i += 1){
 		in_addr_t Addr = inet_addr(QUERY_MANAGER[i].Host);
-		if(Addr == 0xFFFFFFFF && !ResolveHostNameAddress(QUERY_MANAGER[i].Host, &Addr)){
+		if(Addr == INADDR_NONE && !ResolveHostNameAddress(QUERY_MANAGER[i].Host, &Addr)){
 			print(2, "TQueryManagerConnection::connect: Kann Rechnernamen nicht auflösen.\n");
 			continue;
 		}
@@ -82,8 +83,22 @@ void TQueryManagerConnection::connect(void){
 		QueryManagerAddress.sin_port = htons(QUERY_MANAGER[i].Port);
 		QueryManagerAddress.sin_addr.s_addr = Addr;
 		if(::connect(this->Socket, (struct sockaddr*)&QueryManagerAddress, sizeof(QueryManagerAddress)) == -1){
+			print(2, "TQueryManagerConnection::connect: Kann Verbindung nicht herstellen.\n");
 			this->disconnect();
 			continue;
+		}
+
+		// NOTE(fusion): Make socket non-blocking AFTER connecting. This is to
+		// better align the behaviour of both TQueryManagerConnection::read and
+		// TQueryManagerConnection::write.
+		{
+			int SocketFlags = fcntl(this->Socket, F_GETFL);
+			if(SocketFlags == -1 || fcntl(this->Socket, F_SETFL, (SocketFlags | O_NONBLOCK)) == -1){
+				error("TQueryManagerConnection::connect: Failed to set socket as non-blocking: (%d) %s\n",
+						errno, strerrordesc_np(errno));
+				this->disconnect();
+				continue;
+			}
 		}
 
 		this->prepareQuery(0);
@@ -128,11 +143,11 @@ int TQueryManagerConnection::write(const uint8 *Buffer, int Size){
 			WritePtr += BytesWritten;
 		}else if(BytesWritten == 0){
 			break;
-		}else{
-			// TODO(fusion): We don't set the socket as non blocking so I don't
-			// think we can even get `EAGAIN` here.
-			if(errno != EAGAIN || Attempts <= 0){
-				return -1;
+		}else if(errno != EINTR){
+			if(errno != EAGAIN){
+				return -errno;
+			}else if(Attempts <= 0){
+				return -ETIMEDOUT;
 			}
 
 			DelayThread(0, 100000);
@@ -143,17 +158,33 @@ int TQueryManagerConnection::write(const uint8 *Buffer, int Size){
 }
 
 int TQueryManagerConnection::read(uint8 *Buffer, int Size, int Timeout){
+	// NOTE(fusion): Wait until there is any inbound data then read everything
+	// in one go. Data from the query manager is sent in a burst so we don't need
+	// to be polling every step along the way.
+	int TimeoutMS = Timeout * 1000;
+	int64 Deadline = GetClockMonotonicMS() + TimeoutMS;
+	while(true){
+		struct pollfd pollfd = {};
+		pollfd.fd = Socket;
+		pollfd.events = POLLIN;
+		pollfd.revents = 0;
+		int ret = poll(&pollfd, 1, TimeoutMS);
+		if(ret == 1) break;
+		if(ret == 0) return -ETIMEDOUT;
+		if(ret == -1 && errno != EINTR) return -errno;
+
+		// NOTE(fusion): We should get a timeout before this turns negative, but
+		// just in case... We don't want poll to block indefinitely...
+		TimeoutMS = (int)(Deadline - GetClockMonotonicMS());
+		if(TimeoutMS < 0){
+			return -ETIMEDOUT;
+		}
+	}
+
 	int Attempts = 50;
 	int BytesToRead = Size;
 	uint8 *ReadPtr = Buffer;
 	while(BytesToRead > 0){
-		struct pollfd pollfd = {};
-		pollfd.fd = this->Socket;
-		pollfd.events = POLLIN;
-		if(poll(&pollfd, 1, Timeout * 1000) != 1){
-			return -2;
-		}
-
 		int BytesRead = ::read(this->Socket, ReadPtr, BytesToRead);
 		if(BytesRead > 0){
 			BytesToRead -= BytesRead;
@@ -161,8 +192,10 @@ int TQueryManagerConnection::read(uint8 *Buffer, int Size, int Timeout){
 		}else if(BytesRead == 0){
 			break;
 		}else if(errno != EINTR){
-			if(errno != EAGAIN || BytesToRead == Size || Attempts <= 0){
-				return -1;
+			if(errno != EAGAIN){
+				return -errno;
+			}else if(Attempts <= 0){
+				return -ETIMEDOUT;
 			}
 
 			DelayThread(0, 100000);
@@ -347,7 +380,7 @@ int TQueryManagerConnection::executeQuery(int Timeout, bool AutoReconnect){
 		int BytesRead = this->read(Help, 2, Timeout);
 		if(BytesRead != 2){
 			this->disconnect();
-			if(BytesRead == -2 || Attempt >= MaxAttempts){
+			if(BytesRead == -ETIMEDOUT || Attempt >= MaxAttempts){
 				return QUERY_STATUS_FAILED;
 			}
 			continue;

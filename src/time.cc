@@ -17,6 +17,23 @@ struct tm GetLocalTimeTM(time_t t){
 	return result;
 }
 
+int64 GetClockMonotonicMS(void){
+#if OS_WINDOWS
+	LARGE_INTEGER Counter, Frequency;
+	QueryPerformanceCounter(&Counter);
+	QueryPerformanceFrequency(&Frequency);
+	return (int64)((Counter.QuadPart * 1000) / Frequency.QuadPart);
+#else
+	// NOTE(fusion): The coarse monotonic clock has a larger resolution but is
+	// supposed to be faster, even avoiding system calls in some cases. It should
+	// be fine for millisecond precision which is what we're using.
+	struct timespec Time;
+	clock_gettime(CLOCK_MONOTONIC_COARSE, &Time);
+	return ((int64)Time.tv_sec * 1000)
+		+ ((int64)Time.tv_nsec / 1000000);
+#endif
+}
+
 void GetRealTime(int *Hour, int *Minute){
 	struct tm LocalTime = GetLocalTimeTM(time(NULL));
 	*Hour = LocalTime.tm_hour;

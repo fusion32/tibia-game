@@ -103,7 +103,6 @@ STATIC_ASSERT(OS_LINUX);
 //#define MAX_OPEN_CONTAINERS 16
 #define MAX_SPELL_SYLLABLES 10
 
-
 // shm.cc
 // =============================================================================
 void StartGame(void);
@@ -161,6 +160,7 @@ char *Capitals(char *Text);
 extern uint32 RoundNr;
 extern uint32 ServerMilliseconds;
 struct tm GetLocalTimeTM(time_t t);
+int64 GetClockMonotonicMS(void);
 void GetRealTime(int *Hour, int *Minute);
 void GetTime(int *Hour, int *Minute);
 void GetDate(int *Year, int *Cycle, int *Day);

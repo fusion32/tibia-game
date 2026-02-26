@@ -630,28 +630,21 @@ int ReadFromSocket(TConnection *Connection, uint8 *Buffer, int Size){
 			// NOTE(fusion): TCP FIN with no more data to read.
 			break;
 		}else if(errno != EINTR){
-			if(errno != EAGAIN || BytesToRead == Size || Attempts <= 0){
-				return -1;
+			// TODO(fusion): This is probably overkill. We only need a way to
+			// differentiate between an ERROR/TIMEOUT and NODATA.
+			if(errno != EAGAIN){
+				return -errno;
+			}else if(Attempts <= 0){
+				return -ETIMEDOUT;
+			}else if(BytesToRead == Size){
+				return -EAGAIN;
 			}
+
 			DelayThread(0, 100000);
 			Attempts -= 1;
 		}
 	}
 	return Size - BytesToRead;
-}
-
-bool DrainSocket(TConnection *Connection, int Size){
-	uint8 DiscardBuffer[KB(2)];
-	while(Size > 0){
-		int BytesToRead = std::min<int>(Size, sizeof(DiscardBuffer));
-		int BytesRead = ReadFromSocket(Connection, DiscardBuffer, BytesToRead);
-		if(BytesRead <= 0){
-			return false;
-		}
-		Size -= BytesRead;
-		NetLoad(PACKET_AVERAGE_SIZE_OVERHEAD + BytesRead, false);
-	}
-	return true;
 }
 
 bool CallGameThread(TConnection *Connection){
@@ -1144,11 +1137,11 @@ bool ReceiveCommand(TConnection *Connection){
 			// more data to read.
 			return false;
 		}else if(BytesRead < 0){
-			// NOTE(fusion): There was either no data to be read or a connection
-			// error. Since we can't differ, let the connection be closed elsewhere
-			// in case of errors. This is the only path that will not cause the
-			// connection to be closed, aside from successfully reading a packet.
-			return true;
+			// NOTE(fusion): There was either no data, some data then a timeout,
+			// or a connection error. We only want to keep the connection open
+			// in case there was no data, to allow us to return to the connection
+			// loop in a consistent state.
+			return (BytesRead == -EAGAIN);
 		}
 
 		// NOTE(fusion): It doesn't make sense to continue if we couldn't read
@@ -1164,15 +1157,12 @@ bool ReceiveCommand(TConnection *Connection){
 		// have a few helper functions to assist with buffer reading.
 		int Size = ((uint16)Help[0] | ((uint16)Help[1] << 8));
 
+		// NOTE(fusion): It doesn't make sense to continue if the client didn't
+		// correctly size its packet.
 		if(Size == 0 || Size > (int)sizeof(Connection->InData)){
-			// TODO(fusion): We should definitely close the connection here.
-			// Nevertheless, the original handling of this edge case was just
-			// terrible, reading from the socket recklessly until at least `Size`
-			// bytes were discarded. I replaced it with a small helper function
-			// function `DrainSocket`.
 			print(3, "Paket an Socket %d zu groß oder leer, wird verworfen (%d Bytes)\n",
 					Connection->GetSocket(), Size);
-			return DrainSocket(Connection, Size);
+			return false;
 		}
 
 		BytesRead = ReadFromSocket(Connection, &Connection->InData[0], Size);
@@ -1269,38 +1259,45 @@ void CommunicationThread(int Socket){
 	Connection->Connect(Socket);
 	Connection->WaitingForACK = false;
 
-	struct f_owner_ex FOwnerEx = {};
-	FOwnerEx.type = F_OWNER_TID;
-	FOwnerEx.pid = Connection->ThreadID;
-	if(fcntl(Socket, F_SETOWN_EX, &FOwnerEx) == -1){
-		error("CommunicationThread: F_SETOWN_EX fehlgeschlagen für Socket %d.\n", Socket);
-		if(close(Socket) == -1){
-			error("CommunicationThread: Fehler %d beim Schließen der Socket (2).\n", errno);
+	{
+		struct f_owner_ex FOwnerEx = {};
+		FOwnerEx.type = F_OWNER_TID;
+		FOwnerEx.pid = Connection->ThreadID;
+		if(fcntl(Socket, F_SETOWN_EX, &FOwnerEx) == -1){
+			error("CommunicationThread: F_SETOWN_EX fehlgeschlagen für Socket %d.\n", Socket);
+			if(close(Socket) == -1){
+				error("CommunicationThread: Fehler %d beim Schließen der Socket (2).\n", errno);
+			}
+			Connection->Free();
+			return;
 		}
-		Connection->Free();
-		return;
 	}
 
-	if(fcntl(Socket, F_SETFL, (O_NONBLOCK | O_ASYNC)) == -1){
-		error("ConnectionThread: F_SETFL fehlgeschlagen für Socket %d.\n", Socket);
-		if(close(Socket) == -1){
-			error("CommunicationThread: Fehler %d beim Schließen der Socket (3).\n", errno);
+	{
+		int SocketFlags = fcntl(Socket, F_GETFL);
+		if(SocketFlags == -1 || fcntl(Socket, F_SETFL, (SocketFlags | O_NONBLOCK | O_ASYNC)) == -1){
+			error("ConnectionThread: F_SETFL fehlgeschlagen für Socket %d.\n", Socket);
+			if(close(Socket) == -1){
+				error("CommunicationThread: Fehler %d beim Schließen der Socket (3).\n", errno);
+			}
+			Connection->Free();
+			return;
 		}
-		Connection->Free();
-		return;
 	}
 
 	// NOTE(fusion): In some systems, the accepted socket will inherit TCP_NODELAY
 	// from the acceptor, making this next call redundant then. Nevertheless it is
 	// probably better to set it anyways to be sure.
-	int NoDelay = 1;
-	if(setsockopt(Socket, IPPROTO_TCP, TCP_NODELAY, &NoDelay, sizeof(NoDelay)) == -1){
-		error("ConnectionThread: Failed to set TCP_NODELAY=1 on socket %d.\n", Socket);
-		if(close(Socket) == -1){
-			error("CommunicationThread: Fehler %d beim Schließen der Socket (3.5).\n", errno);
+	{
+		int NoDelay = 1;
+		if(setsockopt(Socket, IPPROTO_TCP, TCP_NODELAY, &NoDelay, sizeof(NoDelay)) == -1){
+			error("ConnectionThread: Failed to set TCP_NODELAY=1 on socket %d.\n", Socket);
+			if(close(Socket) == -1){
+				error("CommunicationThread: Fehler %d beim Schließen der Socket (3.5).\n", errno);
+			}
+			Connection->Free();
+			return;
 		}
-		Connection->Free();
-		return;
 	}
 
 	sigset_t SignalSet;
@@ -1577,8 +1574,7 @@ void InitCommunication(void){
 		throw "cannot load RSA key";
 	}
 
-	OpenSocket();
-	if(TCPSocket == -1){
+	if(!OpenSocket()){
 		throw "cannot open socket";
 	}
 
