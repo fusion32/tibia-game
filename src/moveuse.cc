@@ -2401,12 +2401,19 @@ void CollisionEvent(Object Obj, Object Dest){
 			Object Help = GetFirstContainerObject(Dest);
 			while(Help != NONE){
 				Object Next = Help.getNextObject();
+
+				// IMPORTANT(fusion): Same as below.
+				if(Next == Obj){
+					Next = Next.getNextObject();
+				}
+
 				if(Help != Obj){
 					HandleEvent(MOVEUSE_EVENT_COLLISION, NONE, Obj, Help);
 					if(!Obj.exists()){
 						throw DESTROYED;
 					}
 				}
+
 				Help = Next;
 			}
 		}
@@ -2415,6 +2422,20 @@ void CollisionEvent(Object Obj, Object Dest){
 		Object Help = GetFirstContainerObject(Dest);
 		while(Help != NONE){
 			Object Next = Help.getNextObject();
+
+			// IMPORTANT(fusion): This is very subtle but the collision event can
+			// move or destroy either object, causing it to be removed from the
+			// container list while we're still iterating it.
+			//  It won't be a problem most of the time, but if Next happens to be
+			// Obj, and it gets moved, we could end up iterating the remainder of
+			// whatever list Obj now belongs to, causing side effects like double
+			// collision effects, etc...
+			//  Note that this cannot happen to Help simply because it is already
+			// behind the Next pointer, so checking only for Obj here is enough.
+			if(Next == Obj){
+				Next = Next.getNextObject();
+			}
+
 			if(Help != Obj){
 				ObjectType HelpType = Help.getObjectType();
 				if(HelpType.getFlag(TELEPORTABSOLUTE) || HelpType.getFlag(TELEPORTRELATIVE)){
@@ -2446,6 +2467,7 @@ void CollisionEvent(Object Obj, Object Dest){
 					throw DESTROYED;
 				}
 			}
+
 			Help = Next;
 		}
 	}

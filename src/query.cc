@@ -165,7 +165,7 @@ int TQueryManagerConnection::read(uint8 *Buffer, int Size, int Timeout){
 	int64 Deadline = GetClockMonotonicMS() + TimeoutMS;
 	while(true){
 		struct pollfd pollfd = {};
-		pollfd.fd = Socket;
+		pollfd.fd = this->Socket;
 		pollfd.events = POLLIN;
 		pollfd.revents = 0;
 		int ret = poll(&pollfd, 1, TimeoutMS);
