@@ -2816,9 +2816,13 @@ void TMonster::IdleStimulus(void){
 			case 3: DestY += 1; break;
 		}
 
-		if(this->MovePossible(DestX, DestY, DestZ, true, false)){
-			FoundDest = true;
-			break;
+		try{
+			if(this->MovePossible(DestX, DestY, DestZ, true, false)){
+				FoundDest = true;
+				break;
+			}
+		}catch(RESULT r){
+			// no-op
 		}
 	}
 
