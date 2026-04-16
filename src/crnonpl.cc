@@ -2392,13 +2392,14 @@ void TMonster::IdleStimulus(void){
 		int TalkNr = random(1, RaceData[this->Race].Talks);
 		const char *Text = GetDynamicString(*RaceData[this->Race].Talk.at(TalkNr));
 		if(Text != 0 && Text[0] != 0){
-			// TODO(fusion): We were only checking for a `#` but it could be
-			// problematic for any two character nul terminated string, since
-			// adding 3 would make it point out of bounds. Poor string management
-			// is a recurring theme.
+			// NOTE(fusion): The original would only check for a leading '#' before
+			// advancing 3 characters. This would be a problem for any 2 character
+			// string since we'd end up pointing beyond the null terminator.
 			int Mode = TALK_ANIMAL_LOW;
-			if(Text[0] == '#' && (Text[1] == 'y' || Text[1] == 'Y') && Text[2] == ' '){
-				Mode = TALK_ANIMAL_LOUD;
+			if(Text[0] == '#' && Text[1] != 0 && Text[2] == ' '){
+				if(Text[1] == 'y' || Text[1] == 'Y'){
+					Mode = TALK_ANIMAL_LOUD;
+				}
 				Text += 3;
 			}
 
