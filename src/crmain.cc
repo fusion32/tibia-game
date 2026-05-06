@@ -2082,7 +2082,7 @@ void ProcessMonsterRaids(void){
 								|| ItemType.getFlag(WEAROUT)
 								|| ItemType.getFlag(EXPIRE)
 								|| ItemType.getFlag(EXPIRESTOP)){
-							Item = Create(Bag, ItemType, 0);
+							Item = Create(Bag, ItemType, Amount);
 						}else{
 							Item = CreateAtCreature(Creature->ID, ItemType, Amount);
 						}

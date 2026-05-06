@@ -2058,7 +2058,7 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 								|| ItemType.getFlag(WEAROUT)
 								|| ItemType.getFlag(EXPIRE)
 								|| ItemType.getFlag(EXPIRESTOP)){
-							Item = Create(Bag, ItemType, 0);
+							Item = Create(Bag, ItemType, Amount);
 						}else{
 							Item = CreateAtCreature(this->ID, ItemType, Amount);
 						}
