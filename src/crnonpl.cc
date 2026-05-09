@@ -1984,8 +1984,8 @@ TMonster::TMonster(int Race, int x, int y, int z, int Home, uint32 MasterID) :
 	this->starty = y;
 	this->startz = z;
 	this->posx = x;
-	this->posx = y;
-	this->posx = z;
+	this->posy = y;
+	this->posz = z;
 	this->State = IDLE;
 	this->Home = Home;
 	this->Master = MasterID;

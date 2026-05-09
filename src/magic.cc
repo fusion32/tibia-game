@@ -4119,7 +4119,7 @@ void UseMagicItem(uint32 CreatureID, Object Obj, Object Dest){
 					throw NOCREATURE;
 				}
 
-				int Amount = ComputeDamage(Actor, SpellNr, 250, 30);
+				int Amount = ComputeDamage(Actor, SpellNr, 250, 0);
 				Heal(Target, -1, 0, Amount); // -1 ?
 				break;
 			}

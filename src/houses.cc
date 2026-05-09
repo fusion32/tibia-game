@@ -798,8 +798,8 @@ static Object CreateTempDepot(void){
 	return TempDepot;
 }
 
-// NOTE(fusion): This is used inside house processing functions to empty the depot
-// container after processing a player's depot.
+// NOTE(fusion): This is used by house processing functions to clear the temporary
+// depot container after processing player depots.
 static void DeleteContainerObjects(Object Con){
 	Object Obj = GetFirstContainerObject(Con);
 	while(Obj != NONE){

@@ -768,19 +768,14 @@ bool SearchFreeField(int *x, int *y, int *z, int Distance, uint16 HouseID, bool 
 		int FieldY = *y + OffsetY;
 		int FieldZ = *z;
 
-		// TODO(fusion): This is probably some form of the `TCreature::MovePossible`
-		// function inlined.
-		bool MovePossible;
+		bool MovePossible = false;
 		if(Jump){
 			MovePossible = JumpPossible(FieldX, FieldY, FieldZ, true);
 		}else{
 			MovePossible = CoordinateFlag(FieldX, FieldY, FieldZ, BANK)
-					&& !CoordinateFlag(FieldX, FieldY, FieldZ, UNPASS);
-
-			// TODO(fusion): This one I'm not so sure.
-			if(MovePossible && CoordinateFlag(FieldX, FieldY, FieldZ, AVOID)){
-				MovePossible = CoordinateFlag(FieldX, FieldY, FieldZ, BED);
-			}
+					&& !CoordinateFlag(FieldX, FieldY, FieldZ, UNPASS)
+					&& (!CoordinateFlag(FieldX, FieldY, FieldZ, AVOID)
+						|| CoordinateFlag(FieldX, FieldY, FieldZ, BED));
 		}
 
 		if(MovePossible){
@@ -792,11 +787,9 @@ bool SearchFreeField(int *x, int *y, int *z, int Distance, uint16 HouseID, bool 
 			}
 		}
 
-
-		// NOTE(fusion): We're spiraling out from the initial coordinate.
-		// TODO(fusion): This function used directions different from the ones
-		// used by creatures and defined in `enums.hh` so I made it use them
-		// instead, LOL.
+		// NOTE(fusion): We're spiraling out from the initial coordinate. The
+		// original function used direction values different from the ones used
+		// by creatures and defined in `enums.hh` so I changed it for consistency.
 		if(CurrentDirection == DIRECTION_NORTH){
 			OffsetY -= 1;
 			if(OffsetY <= -CurrentDistance){
@@ -979,9 +972,8 @@ bool SearchSpawnField(int *x, int *y, int *z, int Distance, bool Player){
 					if(ObjType.getFlag(UNMOVE)){
 						ExpansionPossible = false;
 						LoginPossible = LoginPossible && !Player;
-					}else{
-						LoginBad = true;
 					}
+					LoginBad = true;
 				}
 
 				Obj = Obj.getNextObject();
